@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Jackson",
+    "slug": "jackson",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "jackson",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jackson.tutor",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Jackson needs the microphone so you can talk to your math tutor.",
+        "NSSpeechRecognitionUsageDescription": "Jackson uses speech recognition so it can hear your questions and answers."
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-pencilkit-ui"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
