@@ -1,5 +1,6 @@
 {
   "expo": {
+    "newArchEnabled": false,
     "name": "jackson-v1",
     "slug": "jackson-v1",
     "version": "1.0.0",
