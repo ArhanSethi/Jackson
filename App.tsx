@@ -13,6 +13,7 @@ import {
   generateQuestion,
   GeneratedQuestion,
   GradingResult,
+  verifyBackendAuth,
 } from './src/lib/claude';
 import { speak } from './src/lib/speech';
 import {
@@ -40,9 +41,10 @@ export default function App() {
     Baloo2_800ExtraBold,
   });
 
-  const { isLoaded: authLoaded, isSignedIn, signOut } = useAuth();
+  const { isLoaded: authLoaded, isSignedIn, signOut, getToken } = useAuth();
   const { user } = useUser();
 
+  const [backendUserId, setBackendUserId] = useState<string | null>(null);
   const [topic, setTopic] = useState<string | null>(null);
   const [question, setQuestion] = useState<GeneratedQuestion | null>(null);
   const [tiers, setTiers] = useState<Record<string, number>>({});
@@ -80,6 +82,27 @@ export default function App() {
       }).start();
     }
   }, [question]);
+
+  // SPRINT3.md Ticket 3.2: proves the backend identifies the authenticated
+  // user on a real request from the app (not just that /api/me exists) by
+  // sending the Clerk session token and displaying what comes back.
+  useEffect(() => {
+    if (!isSignedIn) {
+      setBackendUserId(null);
+      return;
+    }
+    (async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const { userId } = await verifyBackendAuth(token);
+        setBackendUserId(userId);
+        console.log('[auth] backend identified user as', userId);
+      } catch (err) {
+        console.error('[auth] backend could not identify user', err);
+      }
+    })();
+  }, [isSignedIn]);
 
   const getTier = (t: string) => tiers[t.toLowerCase()] ?? 1;
   const isStruggling = (t: string) => struggling[t.toLowerCase()] ?? false;
@@ -207,6 +230,7 @@ export default function App() {
       <View style={styles.accountRow}>
         <Text style={styles.accountEmail}>
           {user?.primaryEmailAddress?.emailAddress ?? ''}
+          {backendUserId ? ` · backend: ${backendUserId}` : ''}
         </Text>
         <Pressable style={styles.signOutButton} onPress={() => signOut()}>
           <Text style={styles.signOutButtonText}>Sign out</Text>

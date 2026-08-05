@@ -3,11 +3,18 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSignIn, useSignUp, useSSO } from '@clerk/clerk-expo';
 import * as Linking from 'expo-linking';
 
-// SPRINT3.md Ticket 3.2: parent sign-up/sign-in screen. Supports all three
-// flows the user asked for: email/password, passwordless email (Clerk's
-// "email code" strategy — a code typed in-app, not a clickable link, since
-// a true clickable magic link needs native deep-link redirect config that's
-// disproportionate to the UX goal here), and Google social sign-in.
+// SPRINT3.md Ticket 3.2: native (iOS/Android) fallback sign-up/sign-in
+// screen, hand-built on Clerk's useSignIn/useSignUp hooks. Clerk's prebuilt
+// <SignIn />/<SignUp /> components (the ticket's decided approach) are
+// web-only in @clerk/clerk-expo — see AuthScreen.web.tsx, which Metro picks
+// for `expo start --web`, Jackson's primary dev loop. This file only
+// matters for the periodic real-device/TestFlight checks.
+//
+// Supports all three flows the user asked for: email/password, passwordless
+// email (Clerk's "email code" strategy — a code typed in-app, not a
+// clickable link, since a true clickable magic link needs native deep-link
+// redirect config that's disproportionate to the UX goal here), and Google
+// social sign-in.
 export default function AuthScreen() {
   const { signIn, setActive: setActiveSignIn, isLoaded: signInLoaded } = useSignIn();
   const { signUp, setActive: setActiveSignUp, isLoaded: signUpLoaded } = useSignUp();

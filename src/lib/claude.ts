@@ -50,3 +50,18 @@ export async function gradeAnswer(
 ): Promise<GradingResult> {
   return callBackend<GradingResult>('/api/grade-answer', { imageBase64, question, answer });
 }
+
+// SPRINT3.md Ticket 3.2: hits the backend's auth-protected /api/me with the
+// signed-in user's Clerk session token, so callers can confirm the backend
+// actually identifies who's making the request (not just that the route
+// exists).
+export async function verifyBackendAuth(token: string): Promise<{ userId: string }> {
+  const response = await fetch(`${BACKEND_URL}/api/me`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Backend error ${response.status}: ${errorText}`);
+  }
+  return response.json();
+}

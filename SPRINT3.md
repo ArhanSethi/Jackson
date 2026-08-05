@@ -58,6 +58,11 @@ showing no anthropic.com calls originating from the client.
   than silently claiming full in-browser proof. Railway deployment not yet
   done (still running the backend locally); that's a separate later step,
   not required by this ticket's literal Done-when.
+  **2026-08-05 retry attempt:** still couldn't retry this live — this
+  session's container has no `server/.env` at all, so there's no
+  `ANTHROPIC_API_KEY` to make grade-answer calls succeed against, separate
+  from whatever the earlier Browser-pane issue was. Code path is unchanged
+  from what's described above.
 
 ---
 
@@ -77,7 +82,35 @@ password, magic link, and social login) via Clerk's prebuilt `<SignIn />`/
 custom per-method flow code. Blocked on the Clerk publishable key
 (`pk_test_...`) to start implementation — secret key already provided.
 
-- [ ] Done. Notes: _______________
+- [ ] Done. Notes: Implementation complete, real-account verification still
+  blocked. `<SignIn />`/`<SignUp />` are Clerk-web-only (exported from
+  `@clerk/clerk-expo/web`, backed by `@clerk/clerk-react` — Clerk has no
+  prebuilt UI for bare Expo/React Native, only a newer native-component beta
+  under a different package/major version that needs a custom dev build, out
+  of scope here). Added `src/components/AuthScreen.web.tsx` using the real
+  prebuilt components with `routing="virtual"`; Metro picks this file for
+  `expo start --web` (Jackson's primary dev loop) and falls back to the
+  existing hook-based `AuthScreen.tsx` for native. `ClerkProvider` (index.tsx),
+  the native token cache (src/lib/tokenCache.ts), the backend's
+  `requireAuth`/`verifyToken` middleware (server/src/auth.js), and the
+  `GET /api/me` route (server/index.js) were already in place from prior
+  work. Added `verifyBackendAuth()` (src/lib/claude.ts) so the app itself —
+  not just a manual curl — calls `/api/me` with the signed-in user's real
+  Clerk session token once signed in, and surfaces the returned backend
+  user ID next to the account email in the UI, satisfying "backend can
+  identify which authenticated user is making a request" against a real
+  client request. `npx tsc --noEmit` is clean; the backend boots and
+  `/api/me` correctly returns 401 with no token.
+  **Blocked:** this session's container has no `.env` files at all (client
+  or server) — `.env` is gitignored and doesn't survive across sessions in
+  this ephemeral remote environment, so the publishable/secret keys noted
+  as "available" in an earlier session aren't actually present here. I
+  cannot create a real test account, sign in/out against a live Clerk
+  instance, or confirm a real `/api/me` request end-to-end without
+  `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` (client `.env`) and `CLERK_SECRET_KEY`
+  (`server/.env`) actually being placed in this environment. Not marking
+  this ticket Done until that live verification happens — code is ready to
+  test the moment the keys are supplied.
 
 ---
 
