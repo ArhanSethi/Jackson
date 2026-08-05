@@ -1,13 +1,21 @@
 {
   "name": "jackson-v1",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "index.tsx",
   "dependencies": {
+    "@clerk/clerk-expo": "^2.19.31",
+    "@expo-google-fonts/baloo-2": "^0.4.2",
     "@shopify/react-native-skia": "^2.10.1",
     "expo": "~57.0.9",
+    "expo-font": "~57.0.1",
+    "expo-linking": "~57.0.5",
+    "expo-secure-store": "~57.0.1",
     "expo-status-bar": "~57.0.1",
+    "expo-web-browser": "~57.0.2",
     "react": "19.2.3",
-    "react-native": "0.86.2"
+    "react-dom": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-web": "^0.21.2"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

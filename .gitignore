@@ -9,6 +9,9 @@ dist/
 web-build/
 expo-env.d.ts
 
+# Skia web (regenerate with: npx setup-skia-web)
+/public/canvaskit.wasm
+
 # Native
 .kotlin/
 *.orig.*

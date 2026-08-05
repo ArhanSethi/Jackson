@@ -54,7 +54,7 @@ one wrong answer resets `correctStreak` to 0 and sets `incorrectStreak: 1`.
 **Out of scope:** No UI for this yet. No difficulty logic yet, just the
 tracking data structure.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: src/lib/performanceTracker.ts. Verified via a real script call (not just tsc): 3 correct in a row → correctStreak:3; next wrong → correctStreak:0, incorrectStreak:1.
 
 ---
 
@@ -76,7 +76,7 @@ difficulty across 5 test calls of each.
 **Out of scope:** Don't wire this into the app flow yet, just make the
 function accept and honor the tier parameter.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: generateQuestion lives in src/lib/claude.ts (not minimax.ts — this build is Claude-only, see jackson_v1_clean_build_spec.md). Decided tier ranges per topic (see TIER_DESCRIPTIONS in claude.ts). Verified with 5 real API calls each: addition tier1 consistently single-digit/sum<10 ("3+5"), tier3 consistently two-digit-with-carrying ("47+36"=83, "47+65"=112).
 
 ---
 
@@ -96,7 +96,7 @@ wrong" run stays at tier 1 (can't go below).
 **Out of scope:** No UI indicator of current tier yet, that's optional
 polish for Week 2 if time allows.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: App.tsx now tracks a tier per topic; history resets on each tier adjustment so it takes a fresh streak to trigger the next one (needed to match the "6th-7th question" pacing). Verified live in the browser, real digits hand-drawn each round: always-correct subtraction run hit tier 3 right after question 6 was graded, question 7 presented at tier-3 difficulty ("52 - 37", borrowing required). Always-wrong run held at tier 1 across 4 consecutive wrong answers, never dropped below.
 
 ---
 
@@ -117,7 +117,7 @@ phrasing otherwise. Correct-answer phrasing can stay as-is for this ticket.
 **Out of scope:** Don't touch correct-answer phrasing, don't touch tier
 logic from Week 1.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Added on-screen feedback text (didn't exist before — only speak() existed). Gentle phrasing: "That's okay, let's try one more like it." Verified live: 1st wrong = neutral "Not quite, the answer was 8." (spoken + on-screen), 2nd wrong in a row = gentle phrasing (spoken + on-screen).
 
 ---
 
@@ -137,7 +137,7 @@ next 2+ questions stay at tier 1 addition until 2 corrects land in a row.
 **Out of scope:** Doesn't need to literally repeat the exact same numbers,
 just same topic/tier until they stabilize.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Added a "struggling" lock per topic that overrides Ticket 1.3's bump/drop while active, released on 2 correct in a row. Verified live, full 5-question sequence on addition: wrong, wrong (lock engages) → wrong, correct (both held at tier 1 while locked) → correct (2nd in a row, unlocked) — tier stayed 1 throughout. Found and noted (not fixed here) a real bug for the 2.4 pass: Claude occasionally prepends prose to its JSON response, breaking parseJsonResponse; resolves on retry.
 
 ---
 
@@ -155,7 +155,7 @@ shows accurate correct/total counts, speaks them, and returns to picker.
 **Out of scope:** No per-topic breakdown, no persistence across app
 restarts, just a same-session total.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Also made the canvas/Submit only render once a question is active (was always visible before, even pre-topic-pick), so "return to picker" is a genuinely clean state. Verified live: 1 correct + 1 wrong on Division → "End session" → spoke and displayed "You got 1 out of 2 correct." and returned to a picker-only screen (no question, no canvas, no End session button).
 
 ---
 
@@ -172,4 +172,4 @@ shift after struggling, session close-out — with no crashes.
 
 **Out of scope:** Anything not already built in Tickets 1.1–2.3.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Run via the web dev loop (no physical iPad in this environment; per CLAUDE.md this is the right tool for adaptive-tier/logic testing — a device pass for Pencil/iOS-specific feel is still worth doing separately later). Found and fixed 2 real bugs: (1) parseJsonResponse assumed the whole response was JSON — Claude sometimes prepends prose, breaking JSON.parse; now extracts the {...} slice instead. (2) handleEndSession didn't reset sessionCorrect/sessionTotal, so a new session after ending one would keep accumulating instead of starting fresh — fixed (tier/struggling state intentionally still persists across sessions, only resets on app close, per the sprint's own non-goals). Verified full loop across 2 topics x 2 sessions: mixed right/wrong, tier bumped 1→2 then dropped back to 1 (visibly harder/easier questions each time), tone shifted to gentle phrasing while struggling, both session close-outs showed accurate counts (5/7, then 1/2 — confirming the reset fix), no console errors anywhere.

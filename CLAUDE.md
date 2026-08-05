@@ -28,6 +28,15 @@ npx expo start --web
 Use this for anything that isn't Apple Pencil/iOS-specific: canvas draw/
 clear/submit logic, API integration, adaptive tier logic, UI layout.
 
+**As of SPRINT3.md Ticket 3.1, this also requires the backend running
+alongside it** — the client no longer calls Anthropic directly:
+```
+cd server && npm run dev
+```
+The client talks to it via `EXPO_PUBLIC_BACKEND_URL` (defaults to
+`http://localhost:3001`). Question generation/grading will fail with a
+connection error if the backend isn't running.
+
 **Fallback if web has Skia issues:**
 ```
 npx expo start --android
@@ -45,22 +54,30 @@ client (`npx eas-cli go`) before it'll work on the iPad again.
 
 ## Key files
 - `App.tsx` — main screen logic, topic picker + question/canvas screen
-- `src/lib/minimax.ts` — question generation (MiniMax chat) + speech (MiniMax T2A)
-- `src/lib/claude.ts` — handwriting grading via Claude vision
+- `src/lib/claude.ts` — client-side wrapper that calls the backend for
+  question generation + handwriting grading (as of SPRINT3.md Ticket 3.1,
+  this no longer talks to Anthropic directly or holds an API key)
+- `server/index.js` — Express backend; the only place the Anthropic key
+  lives now
+- `server/src/claude.js` — server-side Claude integration (question
+  generation + grading), ported from the old client-side `claude.ts`
 - `app.json` — Expo config. `newArchEnabled: false` is intentional
   (works around a SDK 57 bridgeless-mode MessageQueue crash, don't
   remove without testing on device first)
 
 ## Environment variables
-Read via `process.env.EXPO_PUBLIC_*` (required prefix for Expo to expose
-vars to client code):
-- `EXPO_PUBLIC_MINIMAX_API_KEY`
-- `EXPO_PUBLIC_ANTHROPIC_API_KEY`
+Client, read via `process.env.EXPO_PUBLIC_*` (required prefix for Expo to
+expose vars to client code):
+- `EXPO_PUBLIC_BACKEND_URL` — defaults to `http://localhost:3001` if unset
 
-These are V1/V2 prototype-only — client-side keys are NOT production-safe.
-Don't "fix" this by moving to a backend unless a ticket explicitly asks
-for it; it's a known, documented tradeoff (see comments at the top of
-`minimax.ts` and `claude.ts`), not an oversight to silently correct.
+Server (`server/.env`, never exposed to the client):
+- `ANTHROPIC_API_KEY`
+- `PORT` (defaults to 3001)
+
+As of SPRINT3.md Ticket 3.1, the client no longer holds an Anthropic key
+at all — that was the point of the ticket, closing the client-side-key
+gap that was an accepted tradeoff through Sprints 1-2. Don't reintroduce
+a client-side Anthropic key.
 
 ---
 
@@ -86,8 +103,11 @@ behavior against it, not just that nothing crashed.
 
 ## Non-goals across all current sprints (do not build unless a ticket
 explicitly asks)
-- No backend/database — client-side and in-memory/local only
-- No user accounts or cross-device sync
+- As of SPRINT3.md, a backend and database are now in scope (see that
+  file for tickets/status) — the old "no backend" non-goal from Sprints
+  1-2 no longer applies. Still don't build backend/DB features ahead of
+  what the current SPRINT3.md ticket specifies.
+- No user accounts or cross-device sync until SPRINT3.md Ticket 3.2/3.3
 - No persistent storage beyond what a specific ticket calls for
 - No new topics beyond what the current sprint's tickets specify
 - No UI/visual changes outside of tickets explicitly scoped as polish

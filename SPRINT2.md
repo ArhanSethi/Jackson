@@ -45,7 +45,7 @@ across 5 test generations per tier.
 it should just work automatically once fractions plugs into the same
 `generateQuestion`/`getRecentPerformance` system.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Adapted to src/lib/claude.ts (no minimax.ts in this build). Widened GeneratedQuestion.answer to number|string (fractions need string answers like "3/4") and added an optional `spoken` field so speak() can use natural phrasing while the screen shows slash notation. Verified with 15 real API calls (5 per tier): tier1 same-denominator, tier2 different-denom/easy-LCM, tier3 required simplification (had to strengthen the tier3 prompt — first pass generated pairs that happened to already be reduced). Verified live in browser: "3/8 + 4/8" displayed, `[speak] What is three eighths plus four eighths?` fired correctly.
 
 ---
 
@@ -67,7 +67,7 @@ handwritten digits (not a fraction or sentence).
 **Out of scope:** Don't add multi-part/multi-answer word problems, one
 number answer per question only.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Adapted to src/lib/claude.ts (no minimax.ts/T2A in this build — uses the speak() stub from Step 3). Ticket only specified tier 1 and tier 3; decided tier 2 myself (single-step, larger numbers up to 100) per the ticket's own instruction. Verified with 9 real API calls across all 3 tiers: all answers were clean `number` type, correct math, tier 3 genuinely two-step (e.g. "gave 6, then mom gave 3x as many as she had left" = 54). Verified live in browser: story-style question displayed and spoken in full via [speak].
 
 ---
 
@@ -92,7 +92,7 @@ grade correctly on the first try (not stuck in low-confidence retry loop).
 **Out of scope:** Don't rebuild the grading architecture, this is prompt
 tuning and testing, not a new grading method.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Context didn't match our build — App.tsx never had an "I couldn't read that clearly" low-confidence fallback (grading just checks `correct`); confirmed via grep before assuming it existed. Tested via the real web dev loop (device-equivalent per CLAUDE.md) with hand-drawn answers, not synthetic input: 5/5 fractions correct on first try (both stacked "7/8"-style and slash-notation "7 / 8" styles, one with an accidental stray line still graded correctly), 5/5 word-problem numeric answers correct on first try (single- and double-digit, e.g. "58", "49"). 9/10 were high confidence; the one low-confidence case (still graded correct) was a genuinely messy draw with a stray artifact on my end, not a systemic fraction/word-problem issue. No prompt tuning was actually needed — existing gradeAnswer prompt already handles both formats reliably, so I left it as-is rather than making speculative changes.
 
 ---
 
@@ -117,7 +117,7 @@ screen, and typography feels less "default iOS app."
 **Out of scope:** Don't change any layout structure, positions, or add new
 screens, this ticket is colors/fonts only.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Used the exact 6-color palette given (src/lib/colors.ts). Installed @expo-google-fonts/baloo-2 + expo-font — this added expo-font as a config plugin in app.json (flagged: native config touched, needs an EAS/Expo Go rebuild before it'll show on the physical iPad; unaffected on the web dev loop used to verify). Chunky rounded buttons via borderRadius + a darker bottom-border for a pressed/depth look. Verified live: computed styles confirmed fontFamily "Baloo2_800ExtraBold" (not a system-font fallback) and question text color exactly #EC4899 for Division, distinct light-tinted background per topic carried from button through to question screen.
 
 ---
 
@@ -141,7 +141,7 @@ don't feel instant/jarring.
 **Out of scope:** No sound effects beyond existing MiniMax speech, no
 confetti libraries or heavy animation dependencies, keep it lightweight.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Adapted "MiniMax speech" to our speak() stub (no sound in this build). Used only React Native's built-in Animated API (Animated.timing for the question fade, Animated.spring for the feedback pop-in) — no new dependency. ⭐ star for correct, 💭 thought-bubble for incorrect (distinct, non-punishing). Canvas fades back in via Animated.View as each new question arrives. Verified live across several correct/incorrect cycles including a tone-shift (2nd wrong in a row) case — all rendered cleanly, no console errors.
 
 ---
 
@@ -162,7 +162,7 @@ clearing, and snapshotting.
 **Out of scope:** Don't change touch handling, path logic, or the
 snapshot/grading pipeline in any way.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Dot-grid rendered as one Skia Path (PathBuilder, not hundreds of React elements) behind the drawing path, cream background, rounded corners, topic-colored border (threaded from App.tsx via a new `topicColor` prop). Hit and fixed a real crash along the way: `[styles.canvas, {borderColor: topicColor}]` array-style merge triggered a react-native-web shorthand/longhand `flex` conflict that crashed the canvas to a blank black screen on re-render — switched to object-spread `{...styles.canvas, borderColor}` which resolved it, confirmed via a fresh tab with clean console history (not just the same tab where stale errors could linger). Verified live across 3 topics (violet/pink/orange borders) and confirmed grading still works identically — real handwritten "5" graded correctly at high confidence with the new background in place.
 
 ---
 
@@ -181,7 +181,7 @@ and polished visuals all working together with no crashes.
 
 **Out of scope:** No new features, this ticket is stabilization only.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Adapted "on device" to the web dev loop (no physical iPad here; matches CLAUDE.md guidance for this class of logic — a real Pencil/iOS pass is still worth doing separately). Ran one continuous multi-topic session: Multiplication (3 correct → tier bump 1→2, "3 x 4"→"7 x 8" visibly harder) → switched to Fractions mid-session (fresh independent tier 1, orange theme) → 2 wrong in a row (tone shift + struggling lock, distinct from Multiplication's state) → Word Problems (fresh tier 1, teal theme, correct answer) → End session → summary read "You got 4 out of 6 correct.", exactly matching the real cross-topic count. All 6 topics visually confirmed distinct and functional (colors, dot-grid canvas, fonts). Zero console errors across the whole run.
 
 ---
 
