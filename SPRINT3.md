@@ -63,6 +63,13 @@ showing no anthropic.com calls originating from the client.
   `ANTHROPIC_API_KEY` to make grade-answer calls succeed against, separate
   from whatever the earlier Browser-pane issue was. Code path is unchanged
   from what's described above.
+  **2026-08-09:** still blocked, same reason — no `ANTHROPIC_API_KEY` was
+  supplied this session (only Clerk keys were). Confirmed `api.anthropic.com`
+  itself is reachable from this sandbox (`curl` gets a normal 401 for a bad
+  request, not a proxy/tunnel failure), unlike Clerk's domains this session
+  — so once a key is supplied, this retry shouldn't hit the same network-
+  policy wall Ticket 3.2 did. Need `ANTHROPIC_API_KEY` in `server/.env` to
+  actually retry the live network trace.
 
 ---
 
@@ -101,16 +108,37 @@ custom per-method flow code. Blocked on the Clerk publishable key
   identify which authenticated user is making a request" against a real
   client request. `npx tsc --noEmit` is clean; the backend boots and
   `/api/me` correctly returns 401 with no token.
-  **Blocked:** this session's container has no `.env` files at all (client
-  or server) — `.env` is gitignored and doesn't survive across sessions in
-  this ephemeral remote environment, so the publishable/secret keys noted
-  as "available" in an earlier session aren't actually present here. I
-  cannot create a real test account, sign in/out against a live Clerk
-  instance, or confirm a real `/api/me` request end-to-end without
-  `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` (client `.env`) and `CLERK_SECRET_KEY`
-  (`server/.env`) actually being placed in this environment. Not marking
-  this ticket Done until that live verification happens — code is ready to
-  test the moment the keys are supplied.
+  **2026-08-09: keys supplied, new blocker found — network policy, not
+  missing keys.** The user provided the real publishable/secret key values
+  in chat; wrote them to `.env` (`EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`, note:
+  the user's paste used the Next.js-style `NEXT_PUBLIC_` prefix, renamed to
+  the `EXPO_PUBLIC_` prefix this Expo project actually reads) and
+  `server/.env` (`CLERK_SECRET_KEY`) — both confirmed gitignored, never
+  committed. Booted the backend and `expo start --web`, then drove it with
+  Playwright to see how far a real browser gets. Result: the app mounts,
+  parses the key correctly, and Clerk's SDK requests
+  `https://composed-magpie-71.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js`
+  (the right host, derived correctly from the key) — but that request
+  fails with `net::ERR_TUNNEL_CONNECTION_FAILED`. Direct `curl` to both
+  `api.clerk.com` and `composed-magpie-71.clerk.accounts.dev` gets a 403
+  from this sandbox's egress proxy, logged as an explicit
+  `connect_rejected` / "policy denial" in `/root/.ccr/__agentproxy/status`
+  — i.e. this remote environment's network policy does not allow reaching
+  Clerk's domains at all, for any tool (curl, Node, or browser). Per this
+  environment's own proxy guidance, that's a policy denial to report, not
+  something to route around (no bypassing the proxy, no disabling TLS
+  verification). Net effect: with `authLoaded` from `useAuth()` never
+  turning true, `App.tsx` sits on a permanent blank screen — confirmed via
+  screenshot — regardless of how correct the Clerk integration code is.
+  **This is now a structural environment-network-policy blocker, not a
+  code or credentials problem.** The integration itself (key parsing, host
+  derivation, component wiring, `/api/me` call) checks out. To actually
+  finish verifying sign-up/login/logout and a live `/api/me` round trip,
+  either this remote environment's network policy needs to allow Clerk's
+  domains (`*.clerk.accounts.dev`, `api.clerk.com`), or the verification
+  needs to happen somewhere with normal internet access (e.g. the user's
+  local machine, which is this project's documented primary dev loop
+  anyway). Not marking this ticket Done.
 
 ---
 
