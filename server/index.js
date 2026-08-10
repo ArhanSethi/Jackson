@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { generateQuestion, gradeAnswer } from './src/claude.js';
+import { generateQuestion, gradeAnswer, classifyTopic } from './src/claude.js';
 import { requireAuth } from './src/auth.js';
 
 const app = express();
@@ -18,6 +18,22 @@ app.get('/health', (_req, res) => {
 // user making a request, via a verified Clerk session token.
 app.get('/api/me', requireAuth, (req, res) => {
   res.json({ userId: req.userId });
+});
+
+// SPRINT4.md Ticket A: classifies free-text topic input into a known
+// tracked topic, a dynamic (untracked) topic, or a decline.
+app.post('/api/classify-topic', async (req, res) => {
+  const { input } = req.body ?? {};
+  if (typeof input !== 'string' || !input.trim()) {
+    return res.status(400).json({ error: 'input is required' });
+  }
+  try {
+    const result = await classifyTopic(input);
+    res.json(result);
+  } catch (err) {
+    console.error('[classify-topic]', err);
+    res.status(502).json({ error: err instanceof Error ? err.message : String(err) });
+  }
 });
 
 app.post('/api/generate-question', async (req, res) => {

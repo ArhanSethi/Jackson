@@ -8,10 +8,13 @@ Built with Expo/React Native, MiniMax (question generation + TTS), and
 Claude (handwriting grading via vision).
 
 ## Source of truth for scope
-This file governs *how* to work. `SPRINT.md` and `SPRINT2.md` (project
-root) govern *what* to build, ticket by ticket. Always work from the
-current ticket's exact Context/Task/Done-when/Out-of-scope block, don't
-infer scope from this file or from memory of past sessions.
+This file governs *how* to work. `SPRINT.md`, `SPRINT2.md`, `SPRINT3.md`,
+and `SPRINT4.md` (project root) govern *what* to build, ticket by ticket —
+check each file's own top-of-file status/pause banner for which one is
+currently active, since sprints can pause and resume rather than running
+strictly in order. Always work from the current ticket's exact Context/
+Task/Done-when/Out-of-scope block, don't infer scope from this file or
+from memory of past sessions.
 
 **Never build ahead of the current ticket.** If a ticket's "Out of scope"
 line excludes something, don't touch it even if it seems related or

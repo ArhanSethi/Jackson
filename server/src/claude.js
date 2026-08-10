@@ -117,6 +117,51 @@ export async function generateQuestion(topic, tier = 1) {
   return parseJsonResponse(text);
 }
 
+// SPRINT4.md Ticket A: the known internal topic set Jackson already has
+// tier/tracking infrastructure for. Must match TIER_DESCRIPTIONS above and
+// the TOPICS array in App.tsx exactly, including "Word Problems" using a
+// space (not the "word_problems" shorthand used in planning docs).
+export const KNOWN_TOPICS = [
+  'Addition',
+  'Subtraction',
+  'Multiplication',
+  'Division',
+  'Fractions',
+  'Word Problems',
+];
+
+function buildClassifyTopicPrompt(input) {
+  return `You are routing a K-8 student's free-text request for what math topic they want to practice, inside a math practice app.
+
+The app already has tracked difficulty progression for exactly these known topics: ${KNOWN_TOPICS.join(', ')}.
+
+Given the student's input below, decide exactly one of three outcomes:
+1. "known" — the input clearly refers to one of the known topics above, allowing for natural phrasing (e.g. "long division" means Division, "adding fractions" means Fractions, "times tables" means Multiplication). Set "topic" to the exact known topic name from the list above, spelled exactly as given.
+2. "dynamic" — the input is a plausible K-8 academic math topic but does NOT match any known topic (e.g. "telling time", "area of a rectangle", "counting money"). Set "topic" to a short, clean, properly-capitalized label for it.
+3. "decline" — the input is not a plausible K-8 academic topic at all (inappropriate, nonsensical, unsafe, off-topic, or not academic). Set "topic" to null.
+
+Student input: "${input}"
+
+Return ONLY valid JSON, no markdown: {"classification": "known"|"dynamic"|"decline", "topic": "<exact known topic name>"|"<clean label>"|null}`;
+}
+
+export async function classifyTopic(input) {
+  const prompt = buildClassifyTopicPrompt(input);
+  const text = await callClaude(prompt);
+  const result = parseJsonResponse(text);
+
+  if (!['known', 'dynamic', 'decline'].includes(result.classification)) {
+    throw new Error(`Unexpected classification from Claude: ${JSON.stringify(result)}`);
+  }
+  if (result.classification === 'known' && !KNOWN_TOPICS.includes(result.topic)) {
+    // Claude picked "known" but didn't return one of our exact strings —
+    // treat as dynamic with whatever label it gave rather than silently
+    // routing to the wrong tracked topic.
+    return { classification: 'dynamic', topic: result.topic };
+  }
+  return result;
+}
+
 export async function gradeAnswer(imageBase64, question, answer) {
   const content = [
     {

@@ -1,5 +1,15 @@
 # Jackson — Full Vision Roadmap: Sprint 3 (Backend, Auth, Accounts)
 
+> **⏸ PAUSED as of 2026-08-10 — see SPRINT4.md.** Ticket 3.1 is done and
+> verified. Ticket 3.2 is implemented but blocked purely on local
+> verification (real account sign-up/login/logout + a live `/api/me`
+> check) on a machine with normal internet access — the dev sandbox used
+> couldn't reach Clerk's domains at all (network-policy block, not a code
+> or key problem; full diagnosis in Ticket 3.2's notes below). Tickets
+> 3.3-3.5 are not started. **Resume from Ticket 3.2's local verification**
+> once SPRINT4.md's work is done — re-read this file's actual state first,
+> don't resume from memory.
+
 **Higher risk than Sprints 1-2.** Several tickets below don't have a clean
 "Done when" until a real decision gets made first, usually by the user, not
 Claude Code.
