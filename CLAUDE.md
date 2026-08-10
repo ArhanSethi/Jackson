@@ -75,12 +75,24 @@ expose vars to client code):
 
 Server (`server/.env`, never exposed to the client):
 - `ANTHROPIC_API_KEY`
+- `CLERK_SECRET_KEY`
+- `DATABASE_URL` — as of SPRINT3.md Ticket 3.3, a Postgres connection
+  string. Only `/api/students*` and `/api/students/:id/tiers*` touch the
+  database; question generation/grading/classification don't need it.
 - `PORT` (defaults to 3001)
 
 As of SPRINT3.md Ticket 3.1, the client no longer holds an Anthropic key
 at all — that was the point of the ticket, closing the client-side-key
 gap that was an accepted tradeoff through Sprints 1-2. Don't reintroduce
 a client-side Anthropic key.
+
+## Local database (SPRINT3.md Ticket 3.3+)
+Local dev uses a real local PostgreSQL, standing in for Ticket 3.0's
+eventual Render-managed instance. If `postgresql` is installed but not
+running (`service postgresql status`), start it with
+`service postgresql start`, then `cd server && npm run migrate` to apply
+`server/src/schema.sql` (idempotent, safe to re-run). `DATABASE_URL` in
+`server/.env` points at it.
 
 ---
 

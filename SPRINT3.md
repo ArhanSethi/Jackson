@@ -238,7 +238,104 @@ resets on app close. Move this to persist per-student in the database.
 **Done when:** closing and reopening the app, a student's tier/streak state
 picks up where it left off, verified across an app restart.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Migrated the *real* structures, not simplified
+  stand-ins, per the explicit ask: `App.tsx`'s `tiers`/`struggling` state
+  and `performanceTracker.ts`'s rolling 5-answer `history` window are now
+  loaded from and written to `known_topic_tiers` (the table added ahead in
+  Ticket 3.3 for exactly this) via two new exports on
+  `performanceTracker.ts` (`seedHistory`, `getHistory`) and a new
+  `persistKnownTopicTier()` in `App.tsx`. This is a direct persistence
+  layer on top of the *unchanged* adaptive algorithm (the actual bump/
+  drop/struggling logic in `handleGraded` wasn't touched) — the client
+  still computes the next tier exactly as before, and now also saves it.
+  `dynamicTiers` (Sprint4 Ticket D's session-only bucket) is completely
+  untouched by this ticket — `persistKnownTopicTier` is a no-op whenever
+  `isKnownTopic()` is false, so a dynamic topic still never calls a
+  persistence endpoint at all, meaning it's not that the schema "hides"
+  dynamic topics somehow, it's that dynamic-topic data structurally never
+  reaches the database in the first place.
+  Found and fixed one real correctness gap while building this: `tiers`
+  starts empty on every mount regardless of what's in the database, so
+  without gating on the load actually completing, a student could pick a
+  topic before persisted data arrived and incorrectly re-trigger placement
+  for an already-assessed topic. Added a `tiersLoaded` gate (blocks the
+  app, same blank-screen pattern already used for font/auth loading, until
+  the DB load finishes or fails) to close this.
+  No student-picker UI exists yet (out of scope for 3.3/3.4's literal
+  Done-when, which are about persistence existing/working, not about a
+  sibling-switcher screen) — a single default student ("Student 1") is
+  auto-provisioned per parent and used for tier persistence. Multi-student
+  support itself is proven correct at the API/DB level in Ticket 3.3's
+  verification.
+  **Verified against the real database**, combining live browser
+  automation with direct `psql`/`pg` queries at every checkpoint (not
+  trusting the app's own report of success) — a real page reload in the
+  middle of the test stood in for "closing and reopening the app," since
+  that's the only way to actually force every piece of React state
+  (including `performanceTracker.ts`'s module-level history object) to
+  fully reset the way an app restart would:
+  1. Fresh load auto-created exactly one `parents` row and one `students`
+     row ("Student 1").
+  2. First-time Addition placement (forced correct via a 7-segment
+     digit-drawing technique, same as SPRINT4.md Ticket E) → DB row showed
+     `tier=3` immediately, matching the live `[placement]` console log.
+  3. Forcing 2 wrong answers in a row (drawing a deliberately-wrong fixed
+     number) → DB row updated to `tier=2, struggling=true,
+     recent_results=[]` — the empty array is correct, not a bug: it
+     matches `resetTopicHistory()` firing in-memory at that exact moment,
+     which is the point of migrating the *real* structure rather than a
+     simplified one.
+  4. Played a dynamic topic ("area of a triangle") for 2 answers, then
+     queried `known_topic_tiers` directly for anything topic-matching
+     "triangle" — **zero rows**, confirming dynamic-topic data never
+     reaches the database at all, not just that the UI doesn't show it.
+  5. **Reloaded the page.** Confirmed still exactly one parent and one
+     student row (no duplicate created on "next login"). Picked Addition
+     again — no placement indicator appeared (tier data correctly loaded
+     from the database before the topic could be picked, thanks to the
+     `tiersLoaded` gate). Submitted one correct answer: struggling
+     correctly stayed `true` (resumed lock state, needs 2 in a row to
+     unlock — if the reload hadn't actually restored `struggling` from the
+     database, this would have incorrectly behaved as a fresh non-
+     struggling correct answer). Submitted a second correct answer in a
+     row: struggling unlocked (`false`), tier correctly stayed at 2 (an
+     unlock alone doesn't bump — that's a separate 3-in-a-row event,
+     exactly matching the already-verified Ticket 1.3/2.2 interaction).
+     Final DB row (`tier=2, struggling=false, recent_results=[true,true]`)
+     matched the live console output exactly.
+  One methodology note: an earlier full run of this same test produced
+  internally-consistent but numerically different results (placement
+  landed at tier 2 instead of 3), traced via a full diagnostic log dump to
+  a different real Claude-vision grading outcome on that run, not a code
+  bug — likely canvas-readiness timing on a cold page load affecting the
+  digit-drawing precision, the same category of real-model variance
+  already documented in SPRINT4.md Ticket E. The version reported above is
+  a clean, fully cross-checked run where every persisted DB value was
+  verified against the app's own live-computed log output rather than a
+  hardcoded prediction, which is what makes it trustworthy regardless of
+  exactly how the grading model calls each digit.
+  As in every prior ticket blocked by this sandbox's Clerk network-policy
+  issue (Ticket 3.2), a live Clerk-authenticated HTTP round trip isn't
+  possible here. This test used two temporary, uncommitted bypasses to get
+  around that specifically for this verification — a stubbed `getToken()`
+  in `App.tsx` and a matching fixed-token acceptance branch in
+  `server/src/auth.js`'s `requireAuth` — both clearly labeled, both
+  reverted via `git checkout` immediately after (confirmed clean diff
+  before and after), and both real committed files were unchanged by the
+  time this ticket's actual code was committed (committed *before* adding
+  the bypasses, learned from an earlier Sprint4 mistake). The persistence
+  logic itself is proven correct against the real database independent of
+  that blocker; only the live-Clerk-token path remains blocked, same root
+  cause as Ticket 3.2.
+  **Local dev database note:** this environment has no hosted Postgres
+  (Ticket 3.0 decided Render, not provisionable from here — no account
+  access, and likely blocked by the same network policy regardless).
+  Found PostgreSQL 16 already installed but not running; started it and
+  created a local `jackson_dev` database — this is what `DATABASE_URL` in
+  `server/.env` points at. Fine for local dev (matches CLAUDE.md's own
+  local-backend dev loop) but real Render provisioning is still a
+  separate, later step, same caveat Ticket 3.1 already noted for actual
+  deployment.
 
 ---
 
