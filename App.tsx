@@ -20,10 +20,18 @@ import {
   getRecentPerformance,
   recordResult,
   resetTopicHistory,
+  seedHistory,
+  getHistory,
 } from './src/lib/performanceTracker';
 import { getTopicColor, lighten } from './src/lib/colors';
 import { isKnownTopic } from './src/lib/topics';
 import { PLACEMENT_TIER, placementStartingTier } from './src/lib/placement';
+import {
+  listStudents,
+  createStudent,
+  getKnownTopicTiers,
+  saveKnownTopicTier,
+} from './src/lib/students';
 import AuthScreen from './src/components/AuthScreen';
 import EntryScreen from './src/components/EntryScreen';
 
@@ -39,6 +47,18 @@ export default function App() {
   const { user } = useUser();
 
   const [backendUserId, setBackendUserId] = useState<string | null>(null);
+  // SPRINT3.md Ticket 3.4: which student's tier data is loaded. No
+  // student-picker UI yet (out of scope for this ticket), so a single
+  // default profile is auto-provisioned per parent and used as "the"
+  // student -- multi-student support itself is proven at the API/DB level
+  // (Ticket 3.3's verification), not exercised through this app's UI yet.
+  const [studentId, setStudentId] = useState<number | null>(null);
+  // True once the known-topic tier load (or a failed attempt at it) has
+  // finished. Gates the app past the auth screens so a topic can't be
+  // picked before persisted tier data has actually loaded -- without this,
+  // `tiers` would still read as empty and incorrectly re-trigger placement
+  // for a topic the student already has DB-persisted data for.
+  const [tiersLoaded, setTiersLoaded] = useState(false);
   const [topic, setTopic] = useState<string | null>(null);
   const [question, setQuestion] = useState<GeneratedQuestion | null>(null);
   const [tiers, setTiers] = useState<Record<string, number>>({});
@@ -110,6 +130,67 @@ export default function App() {
       }
     })();
   }, [isSignedIn]);
+
+  // SPRINT3.md Ticket 3.4: loads this student's persisted known-topic tier
+  // state (or auto-provisions a first student profile if none exists yet)
+  // so tier/struggling/streak state picks up exactly where it left off
+  // after a reload, instead of starting over. Dynamic topics are never
+  // touched here -- `dynamicTiers` stays purely in-memory, preserving
+  // Sprint4 Ticket D's "never persisted" guarantee for them.
+  useEffect(() => {
+    if (!isSignedIn) {
+      setStudentId(null);
+      setTiersLoaded(false);
+      return;
+    }
+    (async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        let { students } = await listStudents(token);
+        if (students.length === 0) {
+          const created = await createStudent(token, 'Student 1');
+          students = [created.student];
+        }
+        const primary = students[0];
+        setStudentId(primary.id);
+
+        const {
+          tiers: loadedTiers,
+          struggling: loadedStruggling,
+          recentResults,
+        } = await getKnownTopicTiers(token, primary.id);
+        setTiers(loadedTiers);
+        setStruggling(loadedStruggling);
+        Object.entries(recentResults).forEach(([t, results]) => {
+          seedHistory(t, results);
+        });
+        console.log('[tiers] loaded persisted state for student', primary.id, loadedTiers);
+      } catch (err) {
+        console.error('[tiers] failed to load persisted state', err);
+      } finally {
+        setTiersLoaded(true);
+      }
+    })();
+  }, [isSignedIn]);
+
+  // SPRINT3.md Ticket 3.4: persists a known topic's tier/struggling/streak
+  // state after it changes. No-op for dynamic topics or before a student
+  // is known, so dynamic-topic data never reaches the database.
+  const persistKnownTopicTier = async (t: string, tier: number, strugglingNow: boolean) => {
+    if (!isKnownTopic(t) || !studentId) return;
+    try {
+      const token = await getToken();
+      if (!token) return;
+      await saveKnownTopicTier(token, studentId, t.toLowerCase(), {
+        tier,
+        struggling: strugglingNow,
+        recentResults: getHistory(t),
+      });
+    } catch (err) {
+      console.error('[tiers] failed to persist', err);
+    }
+  };
 
   // SPRINT4.md Ticket D: reads/writes go to `tiers` for known topics, or
   // the separate `dynamicTiers` bucket for anything else — same shape,
@@ -202,6 +283,7 @@ export default function App() {
           setPlacement(null);
           setTierFor(topic, startingTier);
           console.log('[placement]', topic, answers, '-> tier', startingTier);
+          await persistKnownTopicTier(topic, startingTier, false);
           const next = await generateQuestion(topic, startingTier);
           setQuestion(next);
           speak(next.spoken ?? next.question);
@@ -261,6 +343,7 @@ export default function App() {
     setStruggling((prev) => ({ ...prev, [topic.toLowerCase()]: isNowStruggling }));
     console.log('[tier]', topic, newTier);
     console.log('[struggling]', topic, isNowStruggling);
+    await persistKnownTopicTier(topic, newTier, isNowStruggling);
 
     setLoading(true);
     setError(null);
@@ -301,6 +384,14 @@ export default function App() {
 
   if (!isSignedIn) {
     return <AuthScreen />;
+  }
+
+  // SPRINT3.md Ticket 3.4: wait for persisted tier state to actually load
+  // before letting a topic be picked -- otherwise `tiers` would still read
+  // as empty and incorrectly re-trigger placement for a topic this student
+  // already has DB-persisted data for.
+  if (!tiersLoaded) {
+    return <View style={styles.container} />;
   }
 
   // SPRINT2.md Ticket 4.1: topic color identity carries from the topic
