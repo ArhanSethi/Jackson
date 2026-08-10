@@ -111,7 +111,39 @@ known-topic routing, just reached two ways.
 first thing a student sees, both the text-input path and the quick-button
 path correctly reach a question, verified for both.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Went with the recommended hybrid (quick buttons + text
+  input), not pure text-only. New `src/components/EntryScreen.tsx`
+  replaces `App.tsx`'s old always-visible 6-button grid; `App.tsx` now
+  shows it only while `!topic` (no topic picked/active), matching "first
+  thing a student sees" rather than a persistent nav bar. Quick buttons
+  call the exact same `onTopicChosen` handler `App.tsx` already had
+  (`handleTopicSelect`, unchanged) — they just skip the classify call.
+  Free text calls the new client-side `classifyTopic()`
+  (`src/lib/claude.ts`, thin wrapper around Ticket A's
+  `/api/classify-topic`) and both `known` and `dynamic` results feed into
+  that identical handler, so "both paths route through the same
+  underlying flow" is literally the same function call, not just similar
+  behavior. `decline` results (and the defensive case of a missing topic)
+  show an inline message on the entry screen itself and never call
+  `onTopicChosen` — no console error, no dead end, the student can just
+  try again.
+  Verified live (Playwright against the real running app, real
+  `/api/classify-topic` + `/api/generate-question` calls, not mocked):
+  (1) quick button "Addition" → real question ("3 + 5") appeared
+  immediately; (2) free text "long division" → routed through
+  classification to Division → real question ("15 ÷ 3"); (3) free text
+  "area of a triangle" (novel/dynamic) → real, gradable question generated
+  ("A triangle has a base of 4 cm and a height of 2 cm. What is the area
+  of the triangle?"); (4) free text nonsense gibberish → decline message
+  shown on-screen ("That doesn't look like a math topic I can help
+  with..."), confirmed no question/canvas was reached and the only
+  page-level error in the whole run was the pre-existing, unrelated Clerk
+  network-policy block (see SPRINT3.md Ticket 3.2), not anything from this
+  feature. Clerk's own sign-in still can't load in this sandbox, so — same
+  as the SPRINT3.md Ticket 3.1 retry — verification used a temporary,
+  uncommitted `App.tsx` edit to bypass the auth gate only, reverted via
+  `git checkout -- App.tsx` immediately after (confirmed clean diff before
+  and after committing the real changes).
 
 ---
 
