@@ -2,20 +2,13 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { classifyTopic } from '../lib/claude';
 import { getTopicColor, darken } from '../lib/colors';
+import { KNOWN_TOPICS } from '../lib/topics';
 
 // SPRINT4.md Ticket B: the 6 known topics as quick-access shortcuts. These
 // skip classification entirely (Ticket A's job is routing free text, not
 // re-deciding topics the student picked directly) and call onTopicChosen
 // the same way a successful classification does — both paths converge on
 // the same call, per the ticket's "same underlying flow" requirement.
-const KNOWN_TOPICS = [
-  'Addition',
-  'Subtraction',
-  'Multiplication',
-  'Division',
-  'Fractions',
-  'Word Problems',
-];
 
 interface EntryScreenProps {
   onTopicChosen: (topic: string) => void;

@@ -22,6 +22,8 @@ import {
   resetTopicHistory,
 } from './src/lib/performanceTracker';
 import { getTopicColor, lighten } from './src/lib/colors';
+import { isKnownTopic } from './src/lib/topics';
+import { PLACEMENT_TIER, placementStartingTier } from './src/lib/placement';
 import AuthScreen from './src/components/AuthScreen';
 import EntryScreen from './src/components/EntryScreen';
 
@@ -41,6 +43,12 @@ export default function App() {
   const [question, setQuestion] = useState<GeneratedQuestion | null>(null);
   const [tiers, setTiers] = useState<Record<string, number>>({});
   const [struggling, setStruggling] = useState<Record<string, boolean>>({});
+  // SPRINT4.md Ticket C: non-null while running the 2-question placement
+  // quiz for a known topic that has no tier data yet. `answers` collects
+  // correct/incorrect as each placement question is graded.
+  const [placement, setPlacement] = useState<{ topic: string; answers: boolean[] } | null>(
+    null
+  );
   const [feedback, setFeedback] = useState<string | null>(null);
   const [feedbackCorrect, setFeedbackCorrect] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
@@ -103,6 +111,28 @@ export default function App() {
     setTopic(selectedTopic);
     setLoading(true);
     setError(null);
+
+    // SPRINT4.md Ticket C: a known topic with no tier data yet (never
+    // placed or practiced this session) runs the 2-question placement
+    // quiz first, at a fixed baseline tier, instead of going straight to
+    // practice. A known topic that already has tier data, or any dynamic
+    // topic (not in scope for placement per this ticket — Ticket D covers
+    // dynamic-topic behavior), skips straight to practice same as before.
+    const hasExistingTierData = selectedTopic.toLowerCase() in tiers;
+    if (isKnownTopic(selectedTopic) && !hasExistingTierData) {
+      setPlacement({ topic: selectedTopic, answers: [] });
+      try {
+        const result = await generateQuestion(selectedTopic, PLACEMENT_TIER);
+        setQuestion(result);
+        speak(result.spoken ?? result.question);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     try {
       const result = await generateQuestion(selectedTopic, getTier(selectedTopic));
       setQuestion(result);
@@ -120,6 +150,47 @@ export default function App() {
     setSessionTotal((t) => t + 1);
     if (result.correct) {
       setSessionCorrect((c) => c + 1);
+    }
+
+    // SPRINT4.md Ticket C: placement questions are graded with plain
+    // correct/incorrect feedback (no gentle-tone branching — that depends
+    // on the streak tracker below, which placement deliberately doesn't
+    // touch) and don't feed Sprint 1's streak/tier-bump system. Once both
+    // placement answers are in, the fixed CC->3/II->1/mixed->2 mapping
+    // sets the real starting tier and practice begins from there with a
+    // clean streak history.
+    if (placement && placement.topic === topic) {
+      const answers = [...placement.answers, result.correct];
+      const message = result.correct
+        ? 'Correct!'
+        : `Not quite, the answer was ${question?.answer}.`;
+      speak(message);
+      setFeedback(message);
+      setFeedbackCorrect(result.correct);
+
+      setLoading(true);
+      setError(null);
+      try {
+        if (answers.length < 2) {
+          setPlacement({ topic, answers });
+          const next = await generateQuestion(topic, PLACEMENT_TIER);
+          setQuestion(next);
+          speak(next.spoken ?? next.question);
+        } else {
+          const startingTier = placementStartingTier(answers);
+          setPlacement(null);
+          setTiers((prev) => ({ ...prev, [topic.toLowerCase()]: startingTier }));
+          console.log('[placement]', topic, answers, '-> tier', startingTier);
+          const next = await generateQuestion(topic, startingTier);
+          setQuestion(next);
+          speak(next.spoken ?? next.question);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setLoading(false);
+      }
+      return;
     }
 
     recordResult(topic, result.correct);
@@ -190,6 +261,10 @@ export default function App() {
     setFeedbackCorrect(null);
     setTopic(null);
     setQuestion(null);
+    // SPRINT4.md Ticket C: ending a session mid-placement (rare, but
+    // possible) shouldn't leave a stale placement in progress for whatever
+    // topic is picked next.
+    setPlacement(null);
     // SPRINT.md Ticket 2.4 bug pass: without this, starting a new session
     // after ending one kept accumulating onto the previous session's count
     // instead of starting fresh. Tier/struggling state is intentionally left
@@ -229,6 +304,11 @@ export default function App() {
         </Pressable>
       </View>
       {!topic && <EntryScreen onTopicChosen={handleTopicSelect} />}
+      {placement && (
+        <Text style={styles.status}>
+          Quick check ({placement.answers.length + 1} of 2) to find your starting level
+        </Text>
+      )}
       {loading && <Text style={styles.status}>Generating question...</Text>}
       {error && <Text style={styles.error}>{error}</Text>}
       {question && (
