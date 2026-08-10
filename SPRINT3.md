@@ -175,7 +175,59 @@ student profiles (siblings), per Ticket 3.0.
 persisted in the database, retrievable on next login, and can create a
 second profile for a sibling.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: This sandbox had no database at all (confirmed last
+  session — no postgres/prisma/etc anywhere in the repo). Found a real
+  local PostgreSQL 16 install already present but not running (`service
+  postgresql status` → down); started it (`service postgresql start`) and
+  created a real dedicated dev database + role (`jackson_dev` /
+  `jackson`), connection string in `server/.env` as `DATABASE_URL` (not
+  committed, same as the other secrets there). This is a **local** dev
+  Postgres, standing in for Ticket 3.0's eventual Render-managed Postgres
+  decision — provisioning an actual Render instance isn't possible from
+  here (no Render account access, and this sandbox's network policy
+  already blocks unrelated third-party domains — see Ticket 3.2's network
+  findings), and CLAUDE.md's own dev-environment section already runs the
+  backend locally, so a local Postgres for local dev is the right
+  equivalent, not a shortcut around the real requirement.
+  Schema (`server/src/schema.sql`, applied via `npm run migrate`):
+  `parents`, `students`, `sessions`, `answer_history` — the four tables
+  this ticket names — plus `known_topic_tiers`, which isn't in the
+  ticket's literal list but is required to satisfy Ticket 3.4 correctly
+  (see that table's own comment in schema.sql for why: tier state is
+  stateful, not derivable by replaying the answer log). `sessions` and
+  `answer_history` are created now but not yet actively written to —
+  nothing in either this ticket's or 3.4's literal Done-when requires
+  logging every answer permanently, so wiring that up now would be
+  building ahead; the tables exist and are ready whenever a future ticket
+  (e.g. a parent dashboard) actually needs them.
+  Routes added (`server/index.js`, behind the existing `requireAuth`):
+  `GET /api/students` (lists the authenticated parent's students, lazily
+  creating the `parents` row on first use since there's no separate
+  parent-signup step — `req.userId` from Clerk's verified token is the
+  only identity available) and `POST /api/students` (create a profile).
+  **Verified two ways, both against the real Postgres database:** (1) a
+  direct model-level test script (`server/src/students.js`'s
+  `findOrCreateParent`/`createStudent`/`listStudents`, called directly,
+  not through HTTP — necessary because minting a real Clerk-verified
+  token to drive the HTTP+auth layer end-to-end is the same structural
+  network-policy blocker documented in Ticket 3.2, not something more
+  effort here fixes) created a parent, added two students (Alice, Bob —
+  siblings), called `findOrCreateParent` again for the same Clerk ID to
+  simulate "next login" and confirmed it returned the identical parent ID
+  (not a duplicate row) with both siblings still retrievable, then
+  confirmed a *different* parent ID sees zero students (no cross-account
+  leakage). Beyond trusting the model functions' own return values, also
+  ran a raw `SELECT` directly against the `students`/`parents` tables via
+  the same `pg` pool to inspect the actual persisted rows — 2 rows,
+  correct `parent_id` on both, exactly matching what the functions
+  reported. (2) Confirmed `GET`/`POST /api/students` correctly return 401
+  with no bearer token, same pattern as `/api/me` in Ticket 3.2.
+  The full authenticated HTTP round trip (a real signed-in parent hitting
+  these routes through the browser) remains blocked by the same Clerk
+  network-policy issue as Ticket 3.2 — not re-flagging that as a new gap,
+  it's the identical root cause, and the actual persistence logic these
+  routes call is now proven correct against the real database
+  independently of that blocker.
 
 ---
 

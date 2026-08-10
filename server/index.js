@@ -3,6 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import { generateQuestion, gradeAnswer, classifyTopic } from './src/claude.js';
 import { requireAuth } from './src/auth.js';
+import { findOrCreateParent, listStudents, createStudent, studentBelongsToParent } from './src/students.js';
+import { getKnownTopicTiers, upsertKnownTopicTier } from './src/tiers.js';
 
 const app = express();
 
@@ -32,6 +34,83 @@ app.post('/api/classify-topic', async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error('[classify-topic]', err);
+    res.status(502).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+// SPRINT3.md Ticket 3.3: parent/student profiles. A "parent" row is
+// created lazily on first use of the authenticated Clerk user, matching
+// how requireAuth's req.userId (Clerk's `sub` claim) is the only identity
+// info available -- there's no separate signup step for the parent record
+// itself.
+app.get('/api/students', requireAuth, async (req, res) => {
+  try {
+    const parentId = await findOrCreateParent(req.userId);
+    const students = await listStudents(parentId);
+    res.json({ students });
+  } catch (err) {
+    console.error('[students:list]', err);
+    res.status(502).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+app.post('/api/students', requireAuth, async (req, res) => {
+  const { name } = req.body ?? {};
+  if (typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ error: 'name is required' });
+  }
+  try {
+    const parentId = await findOrCreateParent(req.userId);
+    const student = await createStudent(parentId, name.trim());
+    res.json({ student });
+  } catch (err) {
+    console.error('[students:create]', err);
+    res.status(502).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+// SPRINT3.md Ticket 3.4: known-topic tier/streak state only -- dynamic
+// topics never call these routes (App.tsx keeps dynamicTiers purely
+// in-memory), so a dynamic topic can never end up as a row here.
+app.get('/api/students/:studentId/tiers', requireAuth, async (req, res) => {
+  const studentId = Number(req.params.studentId);
+  if (!Number.isInteger(studentId)) {
+    return res.status(400).json({ error: 'studentId must be an integer' });
+  }
+  try {
+    if (!(await studentBelongsToParent(studentId, req.userId))) {
+      return res.status(403).json({ error: 'Not your student' });
+    }
+    const data = await getKnownTopicTiers(studentId);
+    res.json(data);
+  } catch (err) {
+    console.error('[tiers:get]', err);
+    res.status(502).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+app.put('/api/students/:studentId/tiers/:topic', requireAuth, async (req, res) => {
+  const studentId = Number(req.params.studentId);
+  const { tier, struggling, recentResults } = req.body ?? {};
+  if (!Number.isInteger(studentId)) {
+    return res.status(400).json({ error: 'studentId must be an integer' });
+  }
+  if (
+    typeof tier !== 'number' ||
+    typeof struggling !== 'boolean' ||
+    !Array.isArray(recentResults) ||
+    !recentResults.every((r) => typeof r === 'boolean')
+  ) {
+    return res.status(400).json({ error: 'tier (number), struggling (boolean), recentResults (boolean[]) are required' });
+  }
+  try {
+    if (!(await studentBelongsToParent(studentId, req.userId))) {
+      return res.status(403).json({ error: 'Not your student' });
+    }
+    await upsertKnownTopicTier(studentId, req.params.topic, { tier, struggling, recentResults });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[tiers:put]', err);
     res.status(502).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
