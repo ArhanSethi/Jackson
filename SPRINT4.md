@@ -223,6 +223,56 @@ produces real, gradable questions, and gets easier/harder within that
 session based on performance, without appearing as a tracked topic in the
 student's profile/plan view afterward.
 
+- [x] Done. Notes: **Important scope note on the persistence check:** there
+  is no database or storage layer in this codebase at all yet —
+  SPRINT3.md Tickets 3.3 (DB schema) and 3.4 (migrate session tracking to
+  the DB) are both still unstarted, and there's no student profile/plan
+  view screen either. Confirmed by inspection (no postgres/prisma/
+  sequelize/knex/sqlite/mongo/drizzle anywhere in the repo, `server/
+  package.json` has only `@clerk/backend`+`express`+`cors`+`dotenv`,
+  no DB driver). So "check the actual database" doesn't have a database to
+  check yet — the honest equivalent today is the in-memory state
+  structure that a future Ticket 3.4 migration would actually read from to
+  persist "the student's tracked topics." That structure is `tiers`
+  (`App.tsx`), and this ticket's core change is making sure a dynamic
+  topic never enters it.
+  Implementation: `server/src/claude.js`'s generic question-generation
+  branch (the one any topic not "fractions"/"word problems" falls through
+  to — exactly the branch dynamic topics hit) now explicitly requires a
+  genuine K-8 academic exercise with "a single, short, concretely gradable
+  answer... never an essay, paragraph, list, or open-ended response,"
+  reinforcing the original custom-topic ticket's constraints as defense in
+  depth (classifyTopic already declines non-academic input before
+  generation is ever called). `App.tsx` now has a separate `dynamicTiers`
+  state bucket; `getTier()`/`setTierFor()` branch on `isKnownTopic()` to
+  read/write the right one. Sprint 1's actual bump/drop code in
+  `handleGraded` — the exact same `if/else` block, same
+  `recordResult`/`getRecentPerformance` calls — is completely unbranched
+  for known-vs-dynamic; it just calls `setTierFor()`, which resolves to
+  whichever bucket applies. This is genuine reuse (identical code path),
+  not a reimplementation with similar behavior.
+  Verified live (Playwright, real backend/Claude, no mocking): (1) direct
+  API calls confirmed gradable, non-essay answers across 3 tiers of "Area
+  of a Triangle" (e.g. "12 cm²", "30 cm²") and two other novel topics
+  ("Telling Time" → "3:00", "Counting Money" → "100"); (2) entering "area
+  of a triangle" via free text showed no placement indicator (correctly
+  out of Ticket C's scope) and went straight to a real question; (3)
+  submitting 5 answers in a row produced the exact same `[tier]`/
+  `[struggling]` console log lines Sprint 1's known-topic system produces
+  — direct proof the identical code executed, not a lookalike; (4) added a
+  temporary, uncommitted debug hook exposing React state to the test
+  (`window.__DEBUG_STATE__`, reverted via `git checkout` immediately
+  after, same pattern as the auth-bypass edits in prior tickets) and
+  confirmed directly: `tiers` was `{}` (empty) throughout the entire
+  dynamic-topic session, `dynamicTiers` held `{"area of a triangle": 1}`,
+  and — critically — `tiers` was still `{}` after clicking "End session,"
+  confirming the dynamic topic never leaked into the known-topic bucket at
+  any point, not just "wasn't shown in the UI." Zero console errors beyond
+  the pre-existing, unrelated Clerk network-policy block (SPRINT3.md
+  Ticket 3.2). As in prior tickets, real changes were committed before any
+  temporary test instrumentation was added, so the later revert couldn't
+  touch real work.
+
 - [ ] Done. Notes: _______________
 
 ---
