@@ -284,4 +284,59 @@ practice), known-topic returning (straight to practice), dynamic-topic
 nonsensical input). Fix what breaks. Confirm nothing from Sprint 1/2's
 existing adaptive system regressed for the known-topic path.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Ran one continuous live session (Playwright, real
+  backend/Claude, no mocking) exercising every path end to end, with a
+  key methodology upgrade over prior tickets: instead of hoping an
+  ambiguous mouse scribble grades as correct/incorrect (unreliable — an
+  earlier attempt this ticket had a scribble intended as "wrong"
+  accidentally read as correct by real Claude vision, which would have
+  silently invalidated a naive regression check), built a 7-segment
+  digit-drawing helper that renders actual numerals stroke-by-stroke on
+  the canvas. Drawing the question's real answer reliably grades correct
+  (confirmed via a pilot: drew "56", graded `{"written":"56","correct":
+  true,"confidence":"high"}`); drawing a deliberately-wrong fixed number
+  ("999", safely outside Addition/Division's actual answer ranges at any
+  tier) reliably grades incorrect. This made the Sprint 1/2 regression
+  checks deterministic instead of probabilistic.
+  27/27 checks passed, no bugs found, nothing fixed:
+  - **Addition, first-time:** placement showed "Quick check (1 of 2)" →
+    "(2 of 2)" → cleared into practice; `[true,true] -> tier 3` (CC
+    mapping) confirmed live. Then ran a deliberate wrong/wrong/correct/
+    correct/correct sequence and confirmed, in order: neutral "Not quite"
+    on the 1st wrong; gentle "That's okay, let's try one more like it."
+    on the 2nd wrong in a row (Ticket 2.1); tier dropped 3→2 and the
+    struggling lock engaged on that same answer (Ticket 1.3/2.2);
+    correct-answer phrasing stayed plain "Correct!" while struggling
+    (Ticket 2.1's "correct-answer phrasing untouched"); tier held at 2
+    through the 1st correct-while-struggling (Ticket 2.2's lock); the
+    struggling lock released on the 2nd correct in a row without an
+    immediate tier bump (2.2's unlock is distinct from 1.3's 3-in-a-row
+    bump); a fresh 3-in-a-row from there bumped 2→3 (Ticket 1.3). Ending
+    the session showed "You got 5 out of 7 correct." — exactly right (2
+    placement + 3 of 5 practice answers correct) — and returned cleanly
+    to the entry screen.
+  - **Division, returning (different topic than the first-time test, per
+    this ticket's ask):** first pick seeded it through its own placement
+    (confirming placement is per-topic, not a one-time global gate);
+    ending the session and picking Division again skipped placement
+    entirely and went straight to practice, which still graded normally.
+  - **Dynamic topic** ("perimeter of a square"): skipped placement
+    (correctly out of Ticket C's scope), produced a real question, and
+    the same `[tier]`/`[struggling]` console logs known-topic practice
+    produces fired for it too — consistent with Ticket D's mechanism-reuse
+    finding, now confirmed inside a mixed multi-path session rather than
+    in isolation.
+  - **Decline case:** nonsense input showed the inline decline message,
+    never reached a question, and — the specific regression check added
+    for this ticket — the app was still fully functional immediately
+    after: picking Multiplication right afterward worked normally, so a
+    decline doesn't leave the entry screen in a bad state.
+  - Zero console errors beyond the pre-existing, unrelated Clerk
+    network-policy block (SPRINT3.md Ticket 3.2).
+  Nothing needed fixing — all Sprint 1/2 known-topic mechanics (tier
+  bump/drop, gentle-tone branching, struggling lock, session close-out)
+  held up exactly as before, running underneath Sprint 4's new placement/
+  routing/dynamic-topic layers. As in prior tickets, testing used a
+  temporary uncommitted `App.tsx` auth-bypass edit reverted via `git
+  checkout` immediately after — no other code changes were made this
+  ticket since nothing broke.
