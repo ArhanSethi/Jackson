@@ -42,6 +42,13 @@ export default function App() {
   const [topic, setTopic] = useState<string | null>(null);
   const [question, setQuestion] = useState<GeneratedQuestion | null>(null);
   const [tiers, setTiers] = useState<Record<string, number>>({});
+  // SPRINT4.md Ticket D: dynamic (novel, unlisted) topics get their own
+  // separate, deliberately-never-persisted tier bucket. Kept apart from
+  // `tiers` (the bucket a future Sprint3 Ticket 3.4 DB migration would
+  // presumably persist as the student's tracked known-topic skill levels)
+  // so a dynamic topic can never accidentally end up looking like tracked
+  // profile data just because it shares a data structure with one.
+  const [dynamicTiers, setDynamicTiers] = useState<Record<string, number>>({});
   const [struggling, setStruggling] = useState<Record<string, boolean>>({});
   // SPRINT4.md Ticket C: non-null while running the 2-question placement
   // quiz for a known topic that has no tier data yet. `answers` collects
@@ -104,7 +111,21 @@ export default function App() {
     })();
   }, [isSignedIn]);
 
-  const getTier = (t: string) => tiers[t.toLowerCase()] ?? 1;
+  // SPRINT4.md Ticket D: reads/writes go to `tiers` for known topics, or
+  // the separate `dynamicTiers` bucket for anything else — same shape,
+  // same default-to-1 behavior, just never the same object.
+  const getTier = (t: string) => {
+    const key = t.toLowerCase();
+    return isKnownTopic(t) ? tiers[key] ?? 1 : dynamicTiers[key] ?? 1;
+  };
+  const setTierFor = (t: string, tier: number) => {
+    const key = t.toLowerCase();
+    if (isKnownTopic(t)) {
+      setTiers((prev) => ({ ...prev, [key]: tier }));
+    } else {
+      setDynamicTiers((prev) => ({ ...prev, [key]: tier }));
+    }
+  };
   const isStruggling = (t: string) => struggling[t.toLowerCase()] ?? false;
 
   const handleTopicSelect = async (selectedTopic: string) => {
@@ -179,7 +200,7 @@ export default function App() {
         } else {
           const startingTier = placementStartingTier(answers);
           setPlacement(null);
-          setTiers((prev) => ({ ...prev, [topic.toLowerCase()]: startingTier }));
+          setTierFor(topic, startingTier);
           console.log('[placement]', topic, answers, '-> tier', startingTier);
           const next = await generateQuestion(topic, startingTier);
           setQuestion(next);
@@ -236,7 +257,7 @@ export default function App() {
       resetTopicHistory(topic);
       isNowStruggling = true;
     }
-    setTiers((prev) => ({ ...prev, [topic.toLowerCase()]: newTier }));
+    setTierFor(topic, newTier);
     setStruggling((prev) => ({ ...prev, [topic.toLowerCase()]: isNowStruggling }));
     console.log('[tier]', topic, newTier);
     console.log('[struggling]', topic, isNowStruggling);

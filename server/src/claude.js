@@ -108,7 +108,17 @@ function buildQuestionPrompt(topic, tier) {
     return `Generate one short word-problem question appropriate for a K-8 student. Difficulty: ${difficulty}. Phrase it as a brief story-style sentence a student would read or hear (e.g. "Sam has 4 apples and buys 3 more. How many apples does Sam have now?"). The answer must be a single plain number — not a fraction, not a decimal, not a sentence. Return ONLY valid JSON, no markdown: {"question": "Sam has 4 apples and buys 3 more. How many apples does Sam have now?", "answer": 7}`;
   }
 
-  return `Generate one simple ${topic} question appropriate for a K-8 student. Difficulty: ${difficulty}. Return ONLY valid JSON, no markdown: {"question": "4 + 4", "answer": 8}`;
+  // SPRINT4.md Ticket D: this is the branch novel/dynamic topics fall
+  // through to (anything not "fractions" or "word problems"), so it's
+  // where the original custom-topic ticket's content-safety and
+  // gradable-answer-format constraints need to live. classifyTopic()
+  // already declines non-academic input before a topic ever reaches here,
+  // so this is defense in depth on the generated question itself, not the
+  // only safety check. Reinforcing it here is harmless for the existing
+  // known topics sharing this branch (addition/subtraction/multiplication/
+  // division already produce short numeric answers) and required for
+  // whatever arbitrary topic a student types.
+  return `Generate one simple ${topic} question appropriate for a K-8 student. Difficulty: ${difficulty}. The question must be a genuine K-8 academic exercise with a single, short, concretely gradable answer — a number, a single word, or a short phrase (e.g. "12", "Tuesday", "3 cm") — never an essay, paragraph, list, or open-ended response. Return ONLY valid JSON, no markdown: {"question": "4 + 4", "answer": 8}`;
 }
 
 export async function generateQuestion(topic, tier = 1) {
