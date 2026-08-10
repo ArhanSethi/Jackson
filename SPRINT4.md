@@ -160,7 +160,51 @@ practice at the current tier, same as today's behavior.
 on a topic they've already been assessed on skips straight to practice,
 verified for both cases.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: "Existing tier data" = `topic.toLowerCase() in tiers`
+  (`App.tsx`) — distinct from `getTier()`'s `?? 1` fallback, which was
+  never a reliable signal of "already assessed" (pre-Sprint4, a topic only
+  got an entry in `tiers` once a natural bump/drop fired, not on first
+  play). Placement now explicitly writes an entry the moment it finishes,
+  so the `in` check is a clean, correct "have we placed this topic" flag.
+  Extracted the mapping into `src/lib/placement.ts`
+  (`placementStartingTier`, `PLACEMENT_TIER=2` baseline for both questions)
+  and the known-topic list into `src/lib/topics.ts` (now shared by
+  `App.tsx` and `EntryScreen.tsx` instead of two copies that could drift).
+  Placement grading uses plain correct/incorrect feedback and deliberately
+  skips Sprint 1's streak tracker (`recordResult`/`getRecentPerformance`)
+  so the gentle-tone/struggling logic can't fire mid-placement; real
+  practice starts with a clean streak history once placement ends. Added a
+  small "Quick check (N of 2) to find your starting level" status line so
+  a student isn't confused why the first couple of questions feel
+  different — not a visual redesign, same plain-text status pattern
+  `App.tsx` already uses for "Generating question...".
+  Verified two ways: (1) **Pure-function unit test** of the actual,
+  unmodified `placementStartingTier` (compiled and imported for real, not
+  reimplemented) against all 4 boolean combinations —
+  `[true,true]→3, [false,false]→1, [true,false]→2, [false,true]→2`, all
+  passed exactly. Real handwritten-answer correctness isn't something I
+  can force via synthetic mouse strokes (Claude's vision grading is the
+  real, unmocked model — a scribble sometimes reads as correct depending
+  on the specific question), so the exhaustive input space is proven at
+  the function level rather than by trying to fake "correct" handwriting.
+  (2) **Live end-to-end trace** (Playwright, real backend/Claude, no
+  mocking) against the real running app: picking "Multiplication" for the
+  first time showed "Quick check (1 of 2)", answering it correctly
+  transitioned to "Quick check (2 of 2)" (confirmed via polling for that
+  exact text, not a fixed timer — proves a genuine second placement
+  question, not the first one lingering), answering that cleared the
+  indicator entirely and landed on a real practice question; the actual
+  live console output confirmed `[placement] Multiplication [true, true]
+  -> tier 3`. A separate run on "Subtraction" landed on `[true, false] ->
+  tier 2` (mixed), also live and unmocked. Ending the session and picking
+  "Multiplication" again showed no placement indicator at all — straight
+  to practice, confirming the returning-topic skip. Zero console errors
+  beyond the pre-existing, unrelated Clerk network-policy block (see
+  SPRINT3.md Ticket 3.2). As with Tickets 3.1(retry)/B, verification used
+  a temporary uncommitted `App.tsx` auth-bypass edit reverted via `git
+  checkout` right after — the real Ticket C changes were committed first
+  this time specifically to avoid last ticket's mistake of losing
+  uncommitted work to that same revert.
 
 ---
 
