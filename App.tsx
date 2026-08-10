@@ -21,17 +21,9 @@ import {
   recordResult,
   resetTopicHistory,
 } from './src/lib/performanceTracker';
-import { getTopicColor, darken, lighten } from './src/lib/colors';
+import { getTopicColor, lighten } from './src/lib/colors';
 import AuthScreen from './src/components/AuthScreen';
-
-const TOPICS = [
-  'Addition',
-  'Subtraction',
-  'Multiplication',
-  'Division',
-  'Fractions',
-  'Word Problems',
-];
+import EntryScreen from './src/components/EntryScreen';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -236,23 +228,7 @@ export default function App() {
           <Text style={styles.signOutButtonText}>Sign out</Text>
         </Pressable>
       </View>
-      <View style={styles.topicRow}>
-        {TOPICS.map((t) => {
-          const color = getTopicColor(t);
-          return (
-            <Pressable
-              key={t}
-              style={[
-                styles.topicButton,
-                { backgroundColor: color, borderBottomColor: darken(color, 0.3) },
-              ]}
-              onPress={() => handleTopicSelect(t)}
-            >
-              <Text style={styles.topicButtonText}>{t}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      {!topic && <EntryScreen onTopicChosen={handleTopicSelect} />}
       {loading && <Text style={styles.status}>Generating question...</Text>}
       {error && <Text style={styles.error}>{error}</Text>}
       {question && (
@@ -337,24 +313,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Baloo2_600SemiBold',
     fontSize: 13,
     color: '#374151',
-  },
-  topicRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 16,
-    gap: 10,
-  },
-  topicButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    borderBottomWidth: 4,
-  },
-  topicButtonText: {
-    color: '#fff',
-    fontFamily: 'Baloo2_700Bold',
-    fontSize: 16,
-    letterSpacing: 0.3,
   },
   status: {
     paddingHorizontal: 16,

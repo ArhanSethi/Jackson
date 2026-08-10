@@ -37,6 +37,19 @@ export async function generateQuestion(
   return callBackend<GeneratedQuestion>('/api/generate-question', { topic, tier });
 }
 
+// SPRINT4.md Ticket A/B: routes free-text topic input to a known tracked
+// topic, a dynamic (untracked) topic, or a content-safety decline.
+export type TopicClassification = 'known' | 'dynamic' | 'decline';
+
+export interface ClassifyTopicResult {
+  classification: TopicClassification;
+  topic: string | null;
+}
+
+export async function classifyTopic(input: string): Promise<ClassifyTopicResult> {
+  return callBackend<ClassifyTopicResult>('/api/classify-topic', { input });
+}
+
 export interface GradingResult {
   written: string;
   correct: boolean;
