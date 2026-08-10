@@ -63,13 +63,27 @@ showing no anthropic.com calls originating from the client.
   `ANTHROPIC_API_KEY` to make grade-answer calls succeed against, separate
   from whatever the earlier Browser-pane issue was. Code path is unchanged
   from what's described above.
-  **2026-08-09:** still blocked, same reason — no `ANTHROPIC_API_KEY` was
-  supplied this session (only Clerk keys were). Confirmed `api.anthropic.com`
-  itself is reachable from this sandbox (`curl` gets a normal 401 for a bad
-  request, not a proxy/tunnel failure), unlike Clerk's domains this session
-  — so once a key is supplied, this retry shouldn't hit the same network-
-  policy wall Ticket 3.2 did. Need `ANTHROPIC_API_KEY` in `server/.env` to
-  actually retry the live network trace.
+  **2026-08-09, retried and clean.** User supplied a real
+  `ANTHROPIC_API_KEY`, added to `server/.env` (gitignored, not committed).
+  Confirmed `api.anthropic.com` is reachable from this sandbox (unlike
+  Clerk's domains — see Ticket 3.2). Ran `npx setup-skia-web` (was missing
+  `public/canvaskit.wasm`, a gitignored local Skia-web asset the canvas
+  needs to render at all — unrelated to Ticket 3.1/3.2, just a first-time
+  local setup step). Then drove the actual running app with Playwright:
+  clicked "Addition", got a real generated question ("3 + 5"), drew a
+  stroke on the canvas, clicked Submit, and got back a real grading result
+  ("Not quite, the answer was 8" — correct, since the stroke wasn't a
+  written "8"). Captured every network request the browser made during
+  this: `POST http://localhost:3001/api/generate-question` and
+  `POST http://localhost:3001/api/grade-answer` are the only calls tied to
+  the question/grading flow; filtering the full request log for
+  `anthropic.com` returns zero matches. (Ticket 3.2's Clerk sign-in was
+  bypassed with a temporary, uncommitted local edit to `App.tsx` purely to
+  reach the canvas — Clerk's own domains are still blocked in this sandbox,
+  see Ticket 3.2 — and reverted via `git checkout -- App.tsx` immediately
+  after the trace; grading and generation routing don't depend on Clerk in
+  any way, so this doesn't weaken the result.) **Done-when fully satisfied
+  for both endpoints now** — no longer flagging this as a gap.
 
 ---
 
