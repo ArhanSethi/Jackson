@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap');
+    body { margin: 0; background: #FFF8EC; }
+  </style>
+</helmet>
+
+<div style="position:relative; width:4020px; height:1740px; background:#FFF8EC; font-family:'Nunito',sans-serif;">
+
+  <div style="position:absolute; left:80px; top:36px;">
+    <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:36px; color:#374151;">Jackson — App Flow</div>
+    <div style="font-family:'Nunito',sans-serif; font-weight:700; font-size:16px; color:#9ca3af; margin-top:4px;">AI math tutor for K-8 · iPadOS · 6 connected screens</div>
+  </div>
+
+  <!-- connector arrows -->
+  <svg style="position:absolute; top:0; left:0; width:4020px; height:1740px; pointer-events:none; z-index:5;">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#374151"/>
+      </marker>
+      <marker id="arrowDashed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#2E7DF0"/>
+      </marker>
+    </defs>
+    <line x1="940" y1="485" x2="1075" y2="485" stroke="#374151" stroke-width="4" marker-end="url(#arrow)"/>
+    <line x1="1940" y1="485" x2="2075" y2="485" stroke="#374151" stroke-width="4" marker-end="url(#arrow)"/>
+    <line x1="2940" y1="485" x2="3075" y2="485" stroke="#374151" stroke-width="4" marker-end="url(#arrow)"/>
+    <line x1="3510" y1="810" x2="3510" y2="965" stroke="#374151" stroke-width="4" marker-end="url(#arrow)"/>
+    <line x1="3075" y1="1295" x2="2945" y2="1295" stroke="#374151" stroke-width="4" marker-end="url(#arrow)"/>
+    <line x1="2075" y1="1295" x2="1945" y2="1295" stroke="#374151" stroke-width="4" marker-end="url(#arrow)"/>
+    <path d="M1510,970 C 1150,880 800,880 510,815" stroke="#2E7DF0" stroke-width="4" stroke-dasharray="2 12" fill="none" marker-end="url(#arrowDashed)"/>
+    <text x="950" y="890" font-family="Nunito" font-weight="700" font-size="15" fill="#2E7DF0">back to Dashboard</text>
+  </svg>
+
+  <!-- ============ FRAME 1: DASHBOARD ============ -->
+  <div style="position:absolute; left:80px; top:120px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:18px; color:#374151;">Dashboard</div>
+  <div style="position:absolute; left:66px; top:146px; width:40px; height:40px; border-radius:50%; background:#2E7DF0; color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:17px; box-shadow:0 4px 0 #1e5fc4; z-index:11;">1</div>
+  <div style="position:absolute; left:80px; top:160px; width:860px; height:650px; z-index:10;">
+    <div style="width:100%; height:100%; background:#20242c; border-radius:46px; padding:12px; box-shadow:0 24px 48px -12px rgba(31,36,44,0.35), 0 4px 12px rgba(31,36,44,0.2); box-sizing:border-box; position:relative;">
+      <div style="position:absolute; top:6px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:#0d0f13;"></div>
+      <div style="width:100%; height:100%; border-radius:36px; overflow:hidden; background:#FFF8EC; position:relative; display:flex; flex-direction:column; box-sizing:border-box; padding:28px;">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <svg width="72" height="82" viewBox="0 0 140 160">
+            <line x1="70" y1="8" x2="70" y2="20" stroke="#374151" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="70" cy="8" r="6" fill="#FBBF24"/>
+            <rect x="18" y="18" width="104" height="92" rx="36" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+            <circle cx="48" cy="62" r="7" fill="#374151"/>
+            <circle cx="92" cy="62" r="7" fill="#374151"/>
+            <circle cx="36" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+            <circle cx="104" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+            <path d="M52,85 Q70,98 88,85" stroke="#374151" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <rect x="30" y="102" width="80" height="52" rx="26" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+            <circle cx="70" cy="128" r="13" fill="#FBBF24"/>
+            <rect x="10" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+            <rect x="106" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+          </svg>
+          <div>
+            <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:30px; color:#374151;">Hi, Maya!</div>
+            <div style="font-family:'Nunito',sans-serif; font-weight:700; font-size:16px; color:#9ca3af; margin-top:2px;">What do you want to work on today?</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:22px;">
+          <div style="background:#2E7DF0; border-radius:22px; padding:16px 18px; box-shadow:0 4px 0 #1e5fc4;">
+            <div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:19px; color:#fff;">Addition</div>
+            <div style="display:flex; gap:6px; margin:10px 0;"><div style="width:11px;height:11px;border-radius:50%;background:#fff;"></div><div style="width:11px;height:11px;border-radius:50%;background:#fff;"></div><div style="width:11px;height:11px;border-radius:50%;background:#fff;"></div></div>
+            <div style="font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9);">Mastered!</div>
+          </div>
+          <div style="background:#8B5CF6; border-radius:22px; padding:16px 18px; box-shadow:0 4px 0 #6d28d9;">
+            <div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:19px; color:#fff;">Subtraction</div>
+            <div style="display:flex; gap:6px; margin:10px 0;"><div style="width:11px;height:11px;border-radius:50%;background:#fff;"></div><div style="width:11px;height:11px;border-radius:50%;background:#fff;"></div><div style="width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.35);"></div></div>
+            <div style="font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9);">Great progress</div>
+          </div>
+          <div style="background:#22C55E; border-radius:22px; padding:16px 18px; box-shadow:0 4px 0 #178a4a;">
+            <div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:19px; color:#fff;">Multiplication</div>
+            <div style="display:flex; gap:6px; margin:10px 0;"><div style="width:11px;height:11px;border-radius:50%;background:#fff;"></div><div style="width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.35);"></div><div style="width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.35);"></div></div>
+            <div style="font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9);">Just started</div>
+          </div>
+          <div style="background:#EC4899; border-radius:22px; padding:16px 18px; box-shadow:0 4px 0 #be185d;">
+            <div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:19px; color:#fff;">Division</div>
+            <div style="display:flex; gap:6px; margin:10px 0;"><div style="width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.35);"></div><div style="width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.35);"></div><div style="width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.35);"></div></div>
+            <div style="font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9);">New — give it a try!</div>
+          </div>
+          <div style="background:#F97316; border-radius:22px; padding:16px 18px; box-shadow:0 4px 0 #c2410c;">
+            <div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:19px; color:#fff;">Fractions</div>
+            <div style="display:flex; gap:6px; margin:10px 0;"><div style="width:11px;height:11px;border-radius:50%;background:#fff;"></div><div style="width:11px;height:11px;border-radius:50%;background:#fff;"></div><div style="width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.35);"></div></div>
+            <div style="font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9);">Great progress</div>
+          </div>
+          <div style="background:#14B8A6; border-radius:22px; padding:16px 18px; box-shadow:0 4px 0 #0f766e;">
+            <div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:19px; color:#fff;">Word Problems</div>
+            <div style="display:flex; gap:6px; margin:10px 0;"><div style="width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.35);"></div><div style="width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.35);"></div><div style="width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.35);"></div></div>
+            <div style="font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9);">New — give it a try!</div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px; flex:1; display:flex; align-items:center; justify-content:center; border:3px dashed #d1d5db; border-radius:22px; background:#fffdf7;">
+          <div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:19px; color:#374151;">+ Start something new</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 2: ENTRY SCREEN ============ -->
+  <div style="position:absolute; left:1080px; top:120px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:18px; color:#374151;">What do you want to work on?</div>
+  <div style="position:absolute; left:1066px; top:146px; width:40px; height:40px; border-radius:50%; background:#2E7DF0; color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:17px; box-shadow:0 4px 0 #1e5fc4; z-index:11;">2</div>
+  <div style="position:absolute; left:1080px; top:160px; width:860px; height:650px; z-index:10;">
+    <div style="width:100%; height:100%; background:#20242c; border-radius:46px; padding:12px; box-shadow:0 24px 48px -12px rgba(31,36,44,0.35), 0 4px 12px rgba(31,36,44,0.2); box-sizing:border-box; position:relative;">
+      <div style="position:absolute; top:6px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:#0d0f13;"></div>
+      <div style="width:100%; height:100%; border-radius:36px; overflow:hidden; background:#FFF8EC; position:relative; display:flex; flex-direction:column; box-sizing:border-box; padding:32px; align-items:center; justify-content:center; gap:22px;">
+        <div style="display:flex; align-items:flex-end; gap:14px;">
+          <svg width="84" height="96" viewBox="0 0 140 160">
+            <line x1="70" y1="8" x2="70" y2="20" stroke="#374151" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="70" cy="8" r="6" fill="#FBBF24"/>
+            <rect x="18" y="18" width="104" height="92" rx="36" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+            <circle cx="48" cy="62" r="7" fill="#374151"/>
+            <circle cx="92" cy="62" r="7" fill="#374151"/>
+            <circle cx="36" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+            <circle cx="104" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+            <path d="M52,85 Q70,98 88,85" stroke="#374151" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <rect x="30" y="102" width="80" height="52" rx="26" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+            <circle cx="70" cy="128" r="13" fill="#FBBF24"/>
+            <rect x="10" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+            <rect x="106" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+          </svg>
+          <div style="position:relative; background:#fff; border:3px solid #2E7DF0; border-radius:22px; padding:16px 22px; max-width:340px;">
+            <div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:22px; color:#374151;">What do you want to work on?</div>
+            <div style="position:absolute; left:-11px; bottom:18px; width:18px; height:18px; background:#fff; border-left:3px solid #2E7DF0; border-bottom:3px solid #2E7DF0; transform:rotate(45deg);"></div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; width:100%; max-width:620px;">
+          <div style="flex:1; border:2px solid #d1d5db; border-radius:16px; padding:14px 18px; font-family:'Nunito',sans-serif; font-weight:600; font-size:16px; color:#9ca3af; background:#fff;">e.g. fractions, telling time, area of a triangle</div>
+          <div style="background:#2E7DF0; border-radius:16px; padding:14px 26px; box-shadow:0 4px 0 #1e5fc4; display:flex; align-items:center;">
+            <div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:17px; color:#fff;">Go</div>
+          </div>
+        </div>
+
+        <div style="font-family:'Baloo 2',sans-serif; font-weight:600; font-size:15px; color:#9ca3af; align-self:flex-start; margin-left:calc(50% - 310px);">Or pick one:</div>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; max-width:620px; justify-content:center;">
+          <div style="background:#2E7DF0; border-radius:20px; padding:13px 20px; box-shadow:0 4px 0 #1e5fc4;"><div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:15px; color:#fff;">Addition</div></div>
+          <div style="background:#8B5CF6; border-radius:20px; padding:13px 20px; box-shadow:0 4px 0 #6d28d9;"><div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:15px; color:#fff;">Subtraction</div></div>
+          <div style="background:#22C55E; border-radius:20px; padding:13px 20px; box-shadow:0 4px 0 #178a4a;"><div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:15px; color:#fff;">Multiplication</div></div>
+          <div style="background:#EC4899; border-radius:20px; padding:13px 20px; box-shadow:0 4px 0 #be185d;"><div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:15px; color:#fff;">Division</div></div>
+          <div style="background:#F97316; border-radius:20px; padding:13px 20px; box-shadow:0 4px 0 #c2410c;"><div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:15px; color:#fff;">Fractions</div></div>
+          <div style="background:#14B8A6; border-radius:20px; padding:13px 20px; box-shadow:0 4px 0 #0f766e;"><div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:15px; color:#fff;">Word Problems</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 3: PLACEMENT QUIZ ============ -->
+  <div style="position:absolute; left:2080px; top:120px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:18px; color:#374151;">Placement Quiz (first time only)</div>
+  <div style="position:absolute; left:2066px; top:146px; width:40px; height:40px; border-radius:50%; background:#2E7DF0; color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:17px; box-shadow:0 4px 0 #1e5fc4; z-index:11;">3</div>
+  <div style="position:absolute; left:2080px; top:160px; width:860px; height:650px; z-index:10;">
+    <div style="width:100%; height:100%; background:#20242c; border-radius:46px; padding:12px; box-shadow:0 24px 48px -12px rgba(31,36,44,0.35), 0 4px 12px rgba(31,36,44,0.2); box-sizing:border-box; position:relative;">
+      <div style="position:absolute; top:6px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:#0d0f13;"></div>
+      <div style="width:100%; height:100%; border-radius:36px; overflow:hidden; background:#FDEEF5; position:relative; display:flex; flex-direction:column; box-sizing:border-box;">
+        <div style="background:#EC4899; padding:18px 28px; display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="background:rgba(255,255,255,0.25); border-radius:14px; padding:6px 14px; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:13px; color:#fff; letter-spacing:0.5px;">QUICK CHECK</div>
+            <div style="font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; color:rgba(255,255,255,0.9);">1 of 2</div>
+          </div>
+          <div style="display:flex; gap:6px;"><div style="width:22px;height:8px;border-radius:4px;background:#fff;"></div><div style="width:22px;height:8px;border-radius:4px;background:rgba(255,255,255,0.35);"></div></div>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; padding:24px 28px; gap:16px;">
+          <div style="font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; color:#be185d;">Let's see where to start!</div>
+          <div style="display:flex; align-items:flex-start; gap:14px;">
+            <svg width="70" height="80" viewBox="0 0 140 160">
+              <line x1="70" y1="8" x2="70" y2="20" stroke="#374151" stroke-width="4" stroke-linecap="round"/>
+              <circle cx="70" cy="8" r="6" fill="#EC4899"/>
+              <rect x="18" y="18" width="104" height="92" rx="36" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+              <circle cx="48" cy="62" r="7" fill="#374151"/>
+              <circle cx="92" cy="62" r="7" fill="#374151"/>
+              <circle cx="36" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+              <circle cx="104" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+              <path d="M52,85 Q70,98 88,85" stroke="#374151" stroke-width="5" fill="none" stroke-linecap="round"/>
+              <rect x="30" y="102" width="80" height="52" rx="26" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+              <circle cx="70" cy="128" r="13" fill="#EC4899"/>
+              <rect x="10" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+              <rect x="106" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+            </svg>
+            <div style="position:relative; background:#fff; border:3px solid #EC4899; border-radius:22px; padding:16px 22px;">
+              <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:26px; color:#374151;">36 ÷ 4 = ?</div>
+              <div style="position:absolute; left:-11px; top:22px; width:18px; height:18px; background:#fff; border-left:3px solid #EC4899; border-bottom:3px solid #EC4899; transform:rotate(45deg);"></div>
+            </div>
+          </div>
+          <div style="flex:1; border:3px solid #EC4899; border-radius:24px; background:#FFFDF7; background-image:radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px); background-size:24px 24px; position:relative;">
+            <div style="position:absolute; top:12px; right:12px; background:#EC4899; border-radius:10px; padding:4px 10px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:11px; color:#fff;">PLACEMENT</div>
+          </div>
+          <div style="display:flex; gap:12px; justify-content:flex-end;">
+            <div style="background:#E5E7EB; border-radius:20px; padding:14px 28px; box-shadow:0 4px 0 #c1c7d0;"><div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:16px; color:#374151;">Clear</div></div>
+            <div style="background:#EC4899; border-radius:20px; padding:14px 32px; box-shadow:0 4px 0 #be185d;"><div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:16px; color:#fff;">Submit</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 4: QUESTION + CANVAS ============ -->
+  <div style="position:absolute; left:3080px; top:120px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:18px; color:#374151;">Question + Canvas</div>
+  <div style="position:absolute; left:3066px; top:146px; width:40px; height:40px; border-radius:50%; background:#2E7DF0; color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:17px; box-shadow:0 4px 0 #1e5fc4; z-index:11;">4</div>
+  <div style="position:absolute; left:3080px; top:160px; width:860px; height:650px; z-index:10;">
+    <div style="width:100%; height:100%; background:#20242c; border-radius:46px; padding:12px; box-shadow:0 24px 48px -12px rgba(31,36,44,0.35), 0 4px 12px rgba(31,36,44,0.2); box-sizing:border-box; position:relative;">
+      <div style="position:absolute; top:6px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:#0d0f13;"></div>
+      <div style="width:100%; height:100%; border-radius:36px; overflow:hidden; background:#EEFBF1; position:relative; display:flex; flex-direction:column; box-sizing:border-box;">
+        <div style="background:#22C55E; padding:20px 28px; display:flex; align-items:center; justify-content:space-between;">
+          <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:24px; color:#fff;">Multiplication</div>
+          <div style="background:rgba(255,255,255,0.25); border-radius:14px; padding:6px 16px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:13px; color:#fff;">Level 2</div>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; padding:24px 28px; gap:16px;">
+          <div style="display:flex; align-items:flex-start; gap:14px;">
+            <svg width="78" height="90" viewBox="0 0 140 160">
+              <line x1="70" y1="8" x2="70" y2="20" stroke="#374151" stroke-width="4" stroke-linecap="round"/>
+              <circle cx="70" cy="8" r="6" fill="#22C55E"/>
+              <rect x="18" y="18" width="104" height="92" rx="36" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+              <circle cx="48" cy="62" r="7" fill="#374151"/>
+              <circle cx="92" cy="62" r="7" fill="#374151"/>
+              <circle cx="36" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+              <circle cx="104" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+              <path d="M52,85 Q70,98 88,85" stroke="#374151" stroke-width="5" fill="none" stroke-linecap="round"/>
+              <rect x="30" y="102" width="80" height="52" rx="26" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+              <circle cx="70" cy="128" r="13" fill="#22C55E"/>
+              <rect x="10" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+              <rect x="106" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+            </svg>
+            <div style="position:relative; background:#fff; border:3px solid #22C55E; border-radius:22px; padding:18px 24px;">
+              <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:28px; color:#374151;">What is 6 × 7?</div>
+              <div style="position:absolute; left:-11px; top:24px; width:18px; height:18px; background:#fff; border-left:3px solid #22C55E; border-bottom:3px solid #22C55E; transform:rotate(45deg);"></div>
+            </div>
+          </div>
+          <div style="flex:1; border:3px solid #22C55E; border-radius:24px; background:#FFFDF7; background-image:radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px); background-size:24px 24px;"></div>
+          <div style="display:flex; gap:12px; justify-content:flex-end;">
+            <div style="background:#E5E7EB; border-radius:20px; padding:14px 28px; box-shadow:0 4px 0 #c1c7d0;"><div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:16px; color:#374151;">Clear</div></div>
+            <div style="background:#22C55E; border-radius:20px; padding:14px 32px; box-shadow:0 4px 0 #178a4a;"><div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:16px; color:#fff;">Submit</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 5a: FEEDBACK CORRECT ============ -->
+  <div style="position:absolute; left:3080px; top:930px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:18px; color:#374151;">Feedback — Correct</div>
+  <div style="position:absolute; left:3066px; top:956px; width:40px; height:40px; border-radius:50%; background:#2E7DF0; color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:15px; box-shadow:0 4px 0 #1e5fc4; z-index:11;">5a</div>
+  <div style="position:absolute; left:3080px; top:970px; width:860px; height:650px; z-index:10;">
+    <div style="width:100%; height:100%; background:#20242c; border-radius:46px; padding:12px; box-shadow:0 24px 48px -12px rgba(31,36,44,0.35), 0 4px 12px rgba(31,36,44,0.2); box-sizing:border-box; position:relative;">
+      <div style="position:absolute; top:6px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:#0d0f13;"></div>
+      <div style="width:100%; height:100%; border-radius:36px; overflow:hidden; background:#EAF3FF; position:relative; display:flex; flex-direction:column; box-sizing:border-box;">
+        <div style="background:#2E7DF0; padding:20px 28px; display:flex; align-items:center; justify-content:space-between;">
+          <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:24px; color:#fff;">Addition</div>
+          <div style="background:rgba(255,255,255,0.25); border-radius:14px; padding:6px 16px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:13px; color:#fff;">Level 3</div>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; padding:24px 28px; gap:14px;">
+          <div style="display:flex; align-items:center; gap:16px;">
+            <svg width="90" height="102" viewBox="0 0 140 160">
+              <line x1="70" y1="8" x2="70" y2="20" stroke="#374151" stroke-width="4" stroke-linecap="round"/>
+              <circle cx="70" cy="8" r="6" fill="#2E7DF0"/>
+              <rect x="18" y="18" width="104" height="92" rx="36" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+              <circle cx="48" cy="62" r="7" fill="#374151"/>
+              <circle cx="92" cy="62" r="7" fill="#374151"/>
+              <circle cx="36" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+              <circle cx="104" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+              <path d="M48,84 Q70,104 92,84" stroke="#374151" stroke-width="5" fill="none" stroke-linecap="round"/>
+              <rect x="30" y="102" width="80" height="52" rx="26" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+              <circle cx="70" cy="128" r="13" fill="#2E7DF0"/>
+              <rect x="10" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5" transform="rotate(-55 22 114)"/>
+              <rect x="106" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5" transform="rotate(55 118 114)"/>
+            </svg>
+            <div style="font-size:30px;">⭐</div>
+            <div>
+              <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:26px; color:#2E7DF0;">Correct!</div>
+              <div style="font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; color:#6b7280;">Nice work — on to the next one.</div>
+            </div>
+          </div>
+          <div style="flex:1; border:3px solid #2E7DF0; border-radius:24px; background:#FFFDF7; background-image:radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px); background-size:24px 24px; position:relative; display:flex; align-items:center; justify-content:center;">
+            <div style="font-family:'Baloo 2',sans-serif; font-weight:600; font-size:34px; color:#374151; transform:rotate(-3deg);">45</div>
+          </div>
+          <div style="display:flex; gap:12px; justify-content:flex-end;">
+            <div style="background:#2E7DF0; border-radius:20px; padding:14px 32px; box-shadow:0 4px 0 #1e5fc4;"><div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:16px; color:#fff;">Next Question</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 5b: FEEDBACK INCORRECT ============ -->
+  <div style="position:absolute; left:2080px; top:930px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:18px; color:#374151;">Feedback — Incorrect</div>
+  <div style="position:absolute; left:2066px; top:956px; width:40px; height:40px; border-radius:50%; background:#2E7DF0; color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:15px; box-shadow:0 4px 0 #1e5fc4; z-index:11;">5b</div>
+  <div style="position:absolute; left:2080px; top:970px; width:860px; height:650px; z-index:10;">
+    <div style="width:100%; height:100%; background:#20242c; border-radius:46px; padding:12px; box-shadow:0 24px 48px -12px rgba(31,36,44,0.35), 0 4px 12px rgba(31,36,44,0.2); box-sizing:border-box; position:relative;">
+      <div style="position:absolute; top:6px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:#0d0f13;"></div>
+      <div style="width:100%; height:100%; border-radius:36px; overflow:hidden; background:#EAF3FF; position:relative; display:flex; flex-direction:column; box-sizing:border-box;">
+        <div style="background:#2E7DF0; padding:20px 28px; display:flex; align-items:center; justify-content:space-between;">
+          <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:24px; color:#fff;">Addition</div>
+          <div style="background:rgba(255,255,255,0.25); border-radius:14px; padding:6px 16px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:13px; color:#fff;">Level 3</div>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; padding:24px 28px; gap:14px;">
+          <div style="display:flex; align-items:center; gap:16px;">
+            <svg width="90" height="102" viewBox="0 0 140 160">
+              <g transform="rotate(-8 70 90)">
+                <line x1="70" y1="8" x2="70" y2="20" stroke="#374151" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="70" cy="8" r="6" fill="#2E7DF0"/>
+                <rect x="18" y="18" width="104" height="92" rx="36" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+                <line x1="42" y1="62" x2="54" y2="62" stroke="#374151" stroke-width="5" stroke-linecap="round"/>
+                <line x1="86" y1="62" x2="98" y2="62" stroke="#374151" stroke-width="5" stroke-linecap="round"/>
+                <circle cx="36" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+                <circle cx="104" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+                <path d="M58,88 Q70,92 82,88" stroke="#374151" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <rect x="30" y="102" width="80" height="52" rx="26" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+                <circle cx="70" cy="128" r="13" fill="#2E7DF0"/>
+                <rect x="10" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+                <rect x="106" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+              </g>
+            </svg>
+            <div style="font-size:28px;">💭</div>
+            <div>
+              <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:22px; color:#374151;">Not quite — the answer was 42.</div>
+              <div style="font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; color:#6b7280;">That's okay, let's try one more like it.</div>
+            </div>
+          </div>
+          <div style="flex:1; border:3px solid #2E7DF0; border-radius:24px; background:#FFFDF7; background-image:radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px); background-size:24px 24px; position:relative; display:flex; align-items:center; justify-content:center;">
+            <div style="font-family:'Baloo 2',sans-serif; font-weight:600; font-size:34px; color:#374151; transform:rotate(2deg);">39</div>
+          </div>
+          <div style="display:flex; gap:12px; justify-content:flex-end;">
+            <div style="background:#2E7DF0; border-radius:20px; padding:14px 32px; box-shadow:0 4px 0 #1e5fc4;"><div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:16px; color:#fff;">Try Again</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 6: SESSION CLOSE-OUT ============ -->
+  <div style="position:absolute; left:1080px; top:930px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:18px; color:#374151;">Session Close-out</div>
+  <div style="position:absolute; left:1066px; top:956px; width:40px; height:40px; border-radius:50%; background:#2E7DF0; color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:17px; box-shadow:0 4px 0 #1e5fc4; z-index:11;">6</div>
+  <div style="position:absolute; left:1080px; top:970px; width:860px; height:650px; z-index:10;">
+    <div style="width:100%; height:100%; background:#20242c; border-radius:46px; padding:12px; box-shadow:0 24px 48px -12px rgba(31,36,44,0.35), 0 4px 12px rgba(31,36,44,0.2); box-sizing:border-box; position:relative;">
+      <div style="position:absolute; top:6px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:#0d0f13;"></div>
+      <div style="width:100%; height:100%; border-radius:36px; overflow:hidden; background:#FFF8EC; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; box-sizing:border-box; padding:32px;">
+        <div style="position:absolute; top:60px; left:70px; width:16px; height:16px; border-radius:50%; background:#22C55E;"></div>
+        <div style="position:absolute; top:110px; right:90px; width:14px; height:14px; border-radius:4px; background:#F97316; transform:rotate(20deg);"></div>
+        <div style="position:absolute; top:200px; left:110px; width:12px; height:12px; border-radius:50%; background:#EC4899;"></div>
+        <div style="position:absolute; bottom:140px; right:70px; width:16px; height:16px; border-radius:4px; background:#8B5CF6; transform:rotate(-15deg);"></div>
+        <div style="position:absolute; bottom:90px; left:90px; width:14px; height:14px; border-radius:50%; background:#14B8A6;"></div>
+        <div style="position:absolute; top:80px; right:150px; width:12px; height:12px; border-radius:50%; background:#2E7DF0;"></div>
+
+        <svg width="150" height="172" viewBox="0 0 140 160">
+          <line x1="70" y1="8" x2="70" y2="20" stroke="#374151" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="70" cy="8" r="6" fill="#FBBF24"/>
+          <rect x="18" y="18" width="104" height="92" rx="36" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+          <circle cx="48" cy="62" r="7" fill="#374151"/>
+          <circle cx="92" cy="62" r="7" fill="#374151"/>
+          <circle cx="36" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+          <circle cx="104" cy="80" r="8" fill="#FFC9D6" opacity="0.85"/>
+          <path d="M46,84 Q70,106 94,84" stroke="#374151" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <rect x="30" y="102" width="80" height="52" rx="26" fill="#FFFFFF" stroke="#374151" stroke-width="5"/>
+          <circle cx="70" cy="128" r="13" fill="#FBBF24"/>
+          <rect x="10" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5" transform="rotate(-60 22 114)"/>
+          <rect x="106" y="106" width="24" height="16" rx="8" fill="#FFFFFF" stroke="#374151" stroke-width="5" transform="rotate(60 118 114)"/>
+        </svg>
+        <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:32px; color:#374151; text-align:center;">Great job today!</div>
+        <div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:24px; color:#2E7DF0;">You got 8 out of 10 correct!</div>
+        <div style="background:#2E7DF0; border-radius:22px; padding:16px 40px; box-shadow:0 4px 0 #1e5fc4; margin-top:6px;">
+          <div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:18px; color:#fff;">Back to Dashboard</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+</body>
+</html>
