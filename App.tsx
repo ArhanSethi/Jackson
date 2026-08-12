@@ -34,6 +34,7 @@ import {
 } from './src/lib/students';
 import AuthScreen from './src/components/AuthScreen';
 import Dashboard from './src/components/Dashboard';
+import Mascot from './src/components/Mascot';
 import EntryScreen from './src/components/EntryScreen';
 
 export default function App() {
@@ -446,7 +447,11 @@ export default function App() {
         </Text>
       )}
       {loading && <Text style={styles.status}>Generating question...</Text>}
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorBannerText}>{error}</Text>
+        </View>
+      )}
       {question && (
         <Animated.Text
           style={[
@@ -457,7 +462,19 @@ export default function App() {
           {question.question}
         </Animated.Text>
       )}
-      {feedback && (
+      {feedback && feedbackCorrect === null && (
+        // SPRINT_VISUAL_CATCHUP.md Ticket P.4: the session close-out
+        // (ending a session sets feedback to a summary with no
+        // correct/incorrect emoji) previously fell through to the same
+        // plain feedbackRow as in-question feedback -- a bare sentence
+        // with no card, sitting right below Dashboard's fully-styled
+        // cards. Gives it its own small celebratory card instead.
+        <View style={styles.closeoutCard}>
+          <Mascot color="#22C55E" size={48} />
+          <Text style={styles.closeoutText}>{feedback}</Text>
+        </View>
+      )}
+      {feedback && feedbackCorrect !== null && (
         <Animated.View
           style={[
             styles.feedbackRow,
@@ -474,11 +491,9 @@ export default function App() {
             },
           ]}
         >
-          {feedbackCorrect !== null && (
-            <Text style={styles.feedbackEmoji}>
-              {feedbackCorrect ? '⭐' : '💭'}
-            </Text>
-          )}
+          <Text style={styles.feedbackEmoji}>
+            {feedbackCorrect ? '⭐' : '💭'}
+          </Text>
           <Text style={styles.feedback}>{feedback}</Text>
         </Animated.View>
       )}
@@ -535,16 +550,43 @@ const styles = StyleSheet.create({
     color: '#666',
     fontFamily: 'Baloo2_500Medium',
   },
-  error: {
-    paddingHorizontal: 16,
+  errorBanner: {
+    marginHorizontal: 16,
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  errorBannerText: {
     color: '#b91c1c',
-    fontFamily: 'Baloo2_500Medium',
+    fontFamily: 'Baloo2_600SemiBold',
+    fontSize: 14,
   },
   question: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 30,
     fontFamily: 'Baloo2_800ExtraBold',
+  },
+  closeoutCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#6EE7B7',
+    borderRadius: 20,
+    padding: 14,
+  },
+  closeoutText: {
+    flex: 1,
+    fontSize: 18,
+    color: '#065f46',
+    fontFamily: 'Baloo2_700Bold',
   },
   feedbackRow: {
     flexDirection: 'row',
