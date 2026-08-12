@@ -16,6 +16,15 @@ export function getTopicColor(topic: string | null): string {
   return TOPIC_COLORS[topic.toLowerCase()] ?? NEUTRAL_COLOR;
 }
 
+// SPRINT3.md Ticket 3.3b: student avatars reuse the established topic
+// palette (not a new color set), cycling through it deterministically by
+// student id so a given student's avatar color is stable across reloads.
+const AVATAR_COLORS = Object.values(TOPIC_COLORS);
+
+export function getAvatarColor(studentId: number): string {
+  return AVATAR_COLORS[studentId % AVATAR_COLORS.length];
+}
+
 function clamp(n: number): number {
   return Math.max(0, Math.min(255, n));
 }

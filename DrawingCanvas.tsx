@@ -135,7 +135,11 @@ export default function DrawingCanvas({
           {grading ? 'Grading...' : 'Submit'}
         </Text>
       </Pressable>
-      {gradingError && <Text style={styles.error}>{gradingError}</Text>}
+      {gradingError && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorBannerText}>{gradingError}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -159,6 +163,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#16a34a',
     borderBottomWidth: 4,
     borderBottomColor: '#0f7a34',
+    borderRadius: 20,
+    marginHorizontal: 16,
+    marginBottom: 16,
     paddingVertical: 14,
     alignItems: 'center',
   },
@@ -172,9 +179,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     letterSpacing: 0.3,
   },
-  error: {
-    padding: 8,
+  errorBanner: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  errorBannerText: {
     color: '#b91c1c',
-    fontFamily: 'Baloo2_500Medium',
+    fontFamily: 'Baloo2_600SemiBold',
+    fontSize: 14,
   },
 });

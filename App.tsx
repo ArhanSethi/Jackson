@@ -22,6 +22,7 @@ import {
   resetTopicHistory,
   seedHistory,
   getHistory,
+  clearAllHistory,
 } from './src/lib/performanceTracker';
 import { getTopicColor, lighten } from './src/lib/colors';
 import { isKnownTopic } from './src/lib/topics';
@@ -31,9 +32,14 @@ import {
   createStudent,
   getKnownTopicTiers,
   saveKnownTopicTier,
+  StudentProfile,
 } from './src/lib/students';
 import AuthScreen from './src/components/AuthScreen';
+import Dashboard from './src/components/Dashboard';
+import Mascot from './src/components/Mascot';
 import EntryScreen from './src/components/EntryScreen';
+import StudentNameEntry from './src/components/StudentNameEntry';
+import StudentPicker from './src/components/StudentPicker';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -47,12 +53,36 @@ export default function App() {
   const { user } = useUser();
 
   const [backendUserId, setBackendUserId] = useState<string | null>(null);
-  // SPRINT3.md Ticket 3.4: which student's tier data is loaded. No
-  // student-picker UI yet (out of scope for this ticket), so a single
-  // default profile is auto-provisioned per parent and used as "the"
-  // student -- multi-student support itself is proven at the API/DB level
-  // (Ticket 3.3's verification), not exercised through this app's UI yet.
+  // SPRINT3.md Ticket 3.3b: the active student's id/name, plus the full
+  // roster and which "student flow" screen (if any) is currently showing.
+  // `studentsLoaded` gates the app the same way `tiersLoaded` already
+  // does, so a topic can't be picked (or the wrong screen briefly flash)
+  // before the roster is actually known.
   const [studentId, setStudentId] = useState<number | null>(null);
+  const [studentName, setStudentName] = useState<string>('');
+  const [students, setStudents] = useState<StudentProfile[]>([]);
+  const [studentsLoaded, setStudentsLoaded] = useState(false);
+  // null = proceed to the normal app; 'name-entry' = mandatory first
+  // profile OR "Add sibling"; 'picker' = choose among 2+ existing
+  // students, or reachable any time via Dashboard's "Switch student".
+  const [studentFlowScreen, setStudentFlowScreen] = useState<'name-entry' | 'picker' | null>(null);
+  const [creatingStudent, setCreatingStudent] = useState(false);
+  const [createStudentError, setCreateStudentError] = useState<string | null>(null);
+  // SPRINT_VISUAL_CATCHUP.md Ticket P.0: Dashboard is the landing screen
+  // once signed in; this flips true only when "+ Start something new" is
+  // tapped, showing the existing EntryScreen underneath it unchanged.
+  const [showEntryScreen, setShowEntryScreen] = useState(false);
+  // SPRINT_VISUAL_CATCHUP.md Ticket P.0 bug fix: the session close-out
+  // ("You got X out of Y correct") is its own screen state, separate from
+  // `feedback` (in-question ⭐/💭 feedback only, from here on). Previously
+  // handleEndSession stored the summary in `feedback` with
+  // feedbackCorrect=null, and nothing ever cleared it -- so it kept
+  // rendering underneath Dashboard indefinitely, on every subsequent visit
+  // and even bleeding into the next session's question screen, until the
+  // next answer was graded. Non-null here means "show the close-out
+  // screen instead of Dashboard"; only an explicit "Back to Dashboard" tap
+  // clears it.
+  const [sessionSummary, setSessionSummary] = useState<string | null>(null);
   // True once the known-topic tier load (or a failed attempt at it) has
   // finished. Gates the app past the auth screens so a topic can't be
   // picked before persisted tier data has actually loaded -- without this,
@@ -131,15 +161,51 @@ export default function App() {
     })();
   }, [isSignedIn]);
 
-  // SPRINT3.md Ticket 3.4: loads this student's persisted known-topic tier
-  // state (or auto-provisions a first student profile if none exists yet)
-  // so tier/struggling/streak state picks up exactly where it left off
-  // after a reload, instead of starting over. Dynamic topics are never
-  // touched here -- `dynamicTiers` stays purely in-memory, preserving
-  // Sprint4 Ticket D's "never persisted" guarantee for them.
+  // SPRINT3.md Ticket 3.3b: loads the parent's student roster and decides
+  // which "student flow" screen (if any) to show before Dashboard --
+  // mandatory name-entry for zero students, auto-select and straight to
+  // Dashboard for exactly one, picker for two or more. Replaces the old
+  // silent "Student 1" auto-provisioning.
   useEffect(() => {
     if (!isSignedIn) {
+      setStudents([]);
+      setStudentsLoaded(false);
       setStudentId(null);
+      setStudentName('');
+      setStudentFlowScreen(null);
+      return;
+    }
+    (async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const { students: loaded } = await listStudents(token);
+        setStudents(loaded);
+        if (loaded.length === 0) {
+          setStudentFlowScreen('name-entry');
+        } else if (loaded.length === 1) {
+          setStudentId(loaded[0].id);
+          setStudentName(loaded[0].name);
+          setStudentFlowScreen(null);
+        } else {
+          setStudentFlowScreen('picker');
+        }
+      } catch (err) {
+        console.error('[students] failed to load roster', err);
+      } finally {
+        setStudentsLoaded(true);
+      }
+    })();
+  }, [isSignedIn]);
+
+  // SPRINT3.md Ticket 3.4 (re-keyed off studentId by Ticket 3.3b): loads
+  // the *active* student's persisted known-topic tier state, so tier/
+  // struggling/streak state picks up exactly where it left off -- both
+  // after a reload and after switching to a different student profile.
+  // Dynamic topics are never touched here -- `dynamicTiers` stays purely
+  // in-memory, preserving Sprint4 Ticket D's "never persisted" guarantee.
+  useEffect(() => {
+    if (!studentId) {
       setTiersLoaded(false);
       return;
     }
@@ -147,32 +213,70 @@ export default function App() {
       try {
         const token = await getToken();
         if (!token) return;
-        let { students } = await listStudents(token);
-        if (students.length === 0) {
-          const created = await createStudent(token, 'Student 1');
-          students = [created.student];
-        }
-        const primary = students[0];
-        setStudentId(primary.id);
-
         const {
           tiers: loadedTiers,
           struggling: loadedStruggling,
           recentResults,
-        } = await getKnownTopicTiers(token, primary.id);
+        } = await getKnownTopicTiers(token, studentId);
         setTiers(loadedTiers);
         setStruggling(loadedStruggling);
         Object.entries(recentResults).forEach(([t, results]) => {
           seedHistory(t, results);
         });
-        console.log('[tiers] loaded persisted state for student', primary.id, loadedTiers);
+        console.log('[tiers] loaded persisted state for student', studentId, loadedTiers);
       } catch (err) {
         console.error('[tiers] failed to load persisted state', err);
       } finally {
         setTiersLoaded(true);
       }
     })();
-  }, [isSignedIn]);
+  }, [studentId]);
+
+  // SPRINT3.md Ticket 3.3b: creates a profile via the existing
+  // POST /api/students (first profile or "Add sibling" -- same call
+  // either way), makes it the active student, and returns to the normal
+  // app. Switching to a different student's data mid-session means
+  // clearing performanceTracker's module-level (student-unaware) history
+  // first, so the outgoing student's rolling answer window can't leak
+  // into the incoming one's -- the tier-loading effect above then re-seeds
+  // it correctly from the new student's own persisted data.
+  const handleCreateStudent = async (name: string) => {
+    setCreatingStudent(true);
+    setCreateStudentError(null);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const { student } = await createStudent(token, name);
+      setStudents((prev) => [...prev, student]);
+      clearAllHistory();
+      setTiers({});
+      setStruggling({});
+      setDynamicTiers({});
+      setSessionCorrect(0);
+      setSessionTotal(0);
+      setStudentId(student.id);
+      setStudentName(student.name);
+      setStudentFlowScreen(null);
+    } catch (err) {
+      setCreateStudentError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setCreatingStudent(false);
+    }
+  };
+
+  const handleSelectStudent = (student: StudentProfile) => {
+    if (student.id !== studentId) {
+      clearAllHistory();
+      setTiers({});
+      setStruggling({});
+      setDynamicTiers({});
+      setSessionCorrect(0);
+      setSessionTotal(0);
+    }
+    setStudentId(student.id);
+    setStudentName(student.name);
+    setStudentFlowScreen(null);
+  };
 
   // SPRINT3.md Ticket 3.4: persists a known topic's tier/struggling/streak
   // state after it changes. No-op for dynamic topics or before a student
@@ -359,9 +463,10 @@ export default function App() {
   };
 
   const handleEndSession = () => {
-    const summary = `You got ${sessionCorrect} out of ${sessionTotal} correct.`;
+    const summary = `You got ${sessionCorrect} out of ${sessionTotal} correct!`;
     speak(summary);
-    setFeedback(summary);
+    setSessionSummary(summary);
+    setFeedback(null);
     setFeedbackCorrect(null);
     setTopic(null);
     setQuestion(null);
@@ -376,6 +481,10 @@ export default function App() {
     // reset every time a session ends (session state only resets on app close).
     setSessionCorrect(0);
     setSessionTotal(0);
+    // SPRINT_VISUAL_CATCHUP.md Ticket P.0: ending a session returns to the
+    // Dashboard (matching the design reference's close-out -> Dashboard
+    // connector), not back to the entry screen it may have come from.
+    setShowEntryScreen(false);
   };
 
   if (!fontsLoaded || !authLoaded) {
@@ -384,6 +493,41 @@ export default function App() {
 
   if (!isSignedIn) {
     return <AuthScreen />;
+  }
+
+  // SPRINT3.md Ticket 3.3b: wait for the student roster before deciding
+  // which screen (if any) to show -- otherwise the app would briefly
+  // flash toward the normal Dashboard/tiersLoaded path before the roster
+  // resolves to "zero students" or "two-plus students".
+  if (!studentsLoaded) {
+    return <View style={styles.container} />;
+  }
+
+  if (studentFlowScreen === 'name-entry') {
+    return (
+      <View style={styles.container}>
+        <StudentNameEntry
+          isFirstProfile={students.length === 0}
+          onSubmit={handleCreateStudent}
+          onCancel={students.length > 0 ? () => setStudentFlowScreen('picker') : undefined}
+          submitting={creatingStudent}
+          error={createStudentError}
+        />
+      </View>
+    );
+  }
+
+  if (studentFlowScreen === 'picker') {
+    return (
+      <View style={styles.container}>
+        <StudentPicker
+          students={students}
+          onSelect={handleSelectStudent}
+          onAddSibling={() => setStudentFlowScreen('name-entry')}
+          onCancel={studentId ? () => setStudentFlowScreen(null) : undefined}
+        />
+      </View>
+    );
   }
 
   // SPRINT3.md Ticket 3.4: wait for persisted tier state to actually load
@@ -415,14 +559,46 @@ export default function App() {
           <Text style={styles.signOutButtonText}>Sign out</Text>
         </Pressable>
       </View>
-      {!topic && <EntryScreen onTopicChosen={handleTopicSelect} />}
+      {!topic && !showEntryScreen && sessionSummary && (
+        // SPRINT_VISUAL_CATCHUP.md Ticket P.0 bug fix: its own screen,
+        // matching the design reference's separate "Session Close-out"
+        // frame -- mutually exclusive with Dashboard, not layered on top
+        // of it. Only "Back to Dashboard" dismisses it.
+        <View style={styles.closeoutScreen}>
+          {/* Design reference's frame 6 mascot uses the same neutral amber
+              as the Dashboard's, not a topic color. */}
+          <Mascot color="#FBBF24" size={96} />
+          <Text style={styles.closeoutHeadline}>Great job today!</Text>
+          <Text style={styles.closeoutStats}>{sessionSummary}</Text>
+          <Pressable
+            style={styles.closeoutButton}
+            onPress={() => setSessionSummary(null)}
+          >
+            <Text style={styles.closeoutButtonText}>Back to Dashboard</Text>
+          </Pressable>
+        </View>
+      )}
+      {!topic && !showEntryScreen && !sessionSummary && (
+        <Dashboard
+          studentName={studentName}
+          tiers={tiers}
+          onTopicSelect={handleTopicSelect}
+          onStartSomethingNew={() => setShowEntryScreen(true)}
+          onSwitchStudent={() => setStudentFlowScreen('picker')}
+        />
+      )}
+      {!topic && showEntryScreen && <EntryScreen onTopicChosen={handleTopicSelect} />}
       {placement && (
         <Text style={styles.status}>
           Quick check ({placement.answers.length + 1} of 2) to find your starting level
         </Text>
       )}
       {loading && <Text style={styles.status}>Generating question...</Text>}
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorBannerText}>{error}</Text>
+        </View>
+      )}
       {question && (
         <Animated.Text
           style={[
@@ -450,11 +626,9 @@ export default function App() {
             },
           ]}
         >
-          {feedbackCorrect !== null && (
-            <Text style={styles.feedbackEmoji}>
-              {feedbackCorrect ? '⭐' : '💭'}
-            </Text>
-          )}
+          <Text style={styles.feedbackEmoji}>
+            {feedbackCorrect ? '⭐' : '💭'}
+          </Text>
           <Text style={styles.feedback}>{feedback}</Text>
         </Animated.View>
       )}
@@ -511,16 +685,57 @@ const styles = StyleSheet.create({
     color: '#666',
     fontFamily: 'Baloo2_500Medium',
   },
-  error: {
-    paddingHorizontal: 16,
+  errorBanner: {
+    marginHorizontal: 16,
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  errorBannerText: {
     color: '#b91c1c',
-    fontFamily: 'Baloo2_500Medium',
+    fontFamily: 'Baloo2_600SemiBold',
+    fontSize: 14,
   },
   question: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 30,
     fontFamily: 'Baloo2_800ExtraBold',
+  },
+  closeoutScreen: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 18,
+    padding: 32,
+  },
+  closeoutHeadline: {
+    fontFamily: 'Baloo2_800ExtraBold',
+    fontSize: 32,
+    color: '#374151',
+    textAlign: 'center',
+  },
+  closeoutStats: {
+    fontFamily: 'Baloo2_700Bold',
+    fontSize: 24,
+    color: '#2E7DF0',
+    textAlign: 'center',
+  },
+  closeoutButton: {
+    backgroundColor: '#2E7DF0',
+    borderBottomWidth: 4,
+    borderBottomColor: '#1e5fc4',
+    borderRadius: 22,
+    paddingVertical: 16,
+    paddingHorizontal: 40,
+  },
+  closeoutButtonText: {
+    color: '#fff',
+    fontFamily: 'Baloo2_700Bold',
+    fontSize: 18,
   },
   feedbackRow: {
     flexDirection: 'row',

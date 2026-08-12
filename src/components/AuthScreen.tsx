@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSignIn, useSignUp, useSSO } from '@clerk/clerk-expo';
 import * as Linking from 'expo-linking';
+import Mascot from './Mascot';
 
 // SPRINT3.md Ticket 3.2: native (iOS/Android) fallback sign-up/sign-in
 // screen, hand-built on Clerk's useSignIn/useSignUp hooks. Clerk's prebuilt
@@ -129,6 +130,7 @@ export default function AuthScreen() {
   if (pendingVerification) {
     return (
       <View style={styles.container}>
+        <View style={styles.mascotWrapper}><Mascot color="#2E7DF0" size={72} /></View>
         <Text style={styles.title}>Check your email</Text>
         <Text style={styles.subtitle}>Enter the code we sent to {email}</Text>
         <TextInput
@@ -151,6 +153,7 @@ export default function AuthScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.mascotWrapper}><Mascot color="#2E7DF0" size={72} /></View>
       <Text style={styles.title}>Jackson</Text>
       <Text style={styles.subtitle}>
         {isNewAccount ? 'Create a parent account' : 'Sign in'}
@@ -222,6 +225,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     backgroundColor: '#fff',
     gap: 12,
+  },
+  mascotWrapper: {
+    alignSelf: 'center',
   },
   title: {
     fontFamily: 'Baloo2_800ExtraBold',

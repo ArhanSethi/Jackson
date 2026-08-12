@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { classifyTopic } from '../lib/claude';
 import { getTopicColor, darken } from '../lib/colors';
 import { KNOWN_TOPICS } from '../lib/topics';
+import Mascot from './Mascot';
 
 // SPRINT4.md Ticket B: the 6 known topics as quick-access shortcuts. These
 // skip classification entirely (Ticket A's job is routing free text, not
@@ -24,6 +25,9 @@ export default function EntryScreen({ onTopicChosen }: EntryScreenProps) {
   const [classifying, setClassifying] = useState(false);
   const [declineMessage, setDeclineMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // SPRINT_VISUAL_CATCHUP.md Ticket P.3: highlights the input with a
+  // colored accent border on focus instead of the plain gray default.
+  const [inputFocused, setInputFocused] = useState(false);
 
   const handleQuickButton = (topic: string) => {
     setDeclineMessage(null);
@@ -57,11 +61,14 @@ export default function EntryScreen({ onTopicChosen }: EntryScreenProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.prompt}>What do you want to work on?</Text>
+      <View style={styles.headerRow}>
+        <Mascot color="#2E7DF0" size={56} />
+        <Text style={styles.prompt}>What do you want to work on?</Text>
+      </View>
 
       <View style={styles.inputRow}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, inputFocused && styles.inputFocused]}
           placeholder="e.g. fractions, telling time, area of a triangle"
           value={input}
           onChangeText={(text) => {
@@ -70,6 +77,8 @@ export default function EntryScreen({ onTopicChosen }: EntryScreenProps) {
             setError(null);
           }}
           onSubmitEditing={handleSubmit}
+          onFocus={() => setInputFocused(true)}
+          onBlur={() => setInputFocused(false)}
           editable={!classifying}
           autoCapitalize="none"
         />
@@ -85,8 +94,16 @@ export default function EntryScreen({ onTopicChosen }: EntryScreenProps) {
         </Pressable>
       </View>
 
-      {declineMessage && <Text style={styles.decline}>{declineMessage}</Text>}
-      {error && <Text style={styles.error}>{error}</Text>}
+      {declineMessage && (
+        <View style={styles.messageBanner}>
+          <Text style={styles.messageBannerText}>{declineMessage}</Text>
+        </View>
+      )}
+      {error && (
+        <View style={styles.messageBanner}>
+          <Text style={styles.messageBannerText}>{error}</Text>
+        </View>
+      )}
 
       <Text style={styles.quickLabel}>Or pick one:</Text>
       <View style={styles.topicRow}>
@@ -115,9 +132,15 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   prompt: {
-    fontFamily: 'Baloo2_700Bold',
-    fontSize: 22,
+    flex: 1,
+    fontFamily: 'Baloo2_800ExtraBold',
+    fontSize: 26,
     color: '#374151',
   },
   inputRow: {
@@ -126,19 +149,22 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#bfdbfe',
+    borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontFamily: 'Baloo2_500Medium',
     fontSize: 16,
   },
+  inputFocused: {
+    borderColor: '#2E7DF0',
+  },
   goButton: {
     backgroundColor: '#2E7DF0',
     borderBottomWidth: 4,
     borderBottomColor: '#1e5fc4',
-    borderRadius: 12,
+    borderRadius: 16,
     paddingHorizontal: 20,
     justifyContent: 'center',
   },
@@ -151,13 +177,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Baloo2_700Bold',
     fontSize: 16,
   },
-  decline: {
-    color: '#b91c1c',
-    fontFamily: 'Baloo2_500Medium',
+  messageBanner: {
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
   },
-  error: {
+  messageBannerText: {
     color: '#b91c1c',
-    fontFamily: 'Baloo2_500Medium',
+    fontFamily: 'Baloo2_600SemiBold',
+    fontSize: 14,
   },
   quickLabel: {
     fontFamily: 'Baloo2_600SemiBold',

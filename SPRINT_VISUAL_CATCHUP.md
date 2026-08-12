@@ -65,21 +65,19 @@ topic-button style, not Clerk's bare default styling.
 app, verified by direct visual comparison against a known-good screen
 (e.g. the topic picker) side by side.
 
-### Ticket P.2 — SKIPPED, not part of this sprint
-**Original scope assumed a student profile creation UI exists to
-restyle. It doesn't** — Sprint 3 only built silent backend auto-
-provisioning (a single "Student 1" row per parent), never a screen where
-a parent actually creates/names a profile or adds a sibling. Restyling
-a flow that doesn't exist would mean building real new functionality,
-which isn't what a visual-consistency ticket should quietly absorb.
+### Ticket P.2 — Student profile creation screens
+**Context:** Ticket 3.3b built the real screens: first-time name-entry,
+student picker (2+ profiles), "Add sibling" flow, "Switch student" on
+Dashboard. This ticket styles them, no functionality changes.
 
-**Deferred to a future, properly-scoped ticket**: build the actual
-create/name/add-sibling profile screen (real feature work, its own
-Done-when), then style it, likely in a later sprint, not bundled into
-visual catch-up. Multiple-sibling support (Sprint 3's Ticket 3.0
-decision) currently has no UI path to actually use it, worth prioritizing
-this before Ticket 3.5's "create a second sibling profile" verification
-step, which technically has no real interface to do that through either.
+**Task:** Apply the established visual treatment, Baloo 2 typography,
+rounded cards/buttons, mascot presence, friendly copy, to: the name-
+entry screen, the student picker, and the "Switch student"/"Add sibling"
+entry points on Dashboard.
+
+**Done when:** All screens built in Ticket 3.3b visually match the rest
+of the app, verified by direct comparison against already-polished
+screens (Dashboard, topic buttons).
 
 ### Ticket P.3 — Open-entry screen (the "what do you want to work on" screen)
 **Task:** This is the most visible one, it's the new first screen a

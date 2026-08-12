@@ -62,3 +62,13 @@ export function seedHistory(topic: string, results: boolean[]): void {
 export function getHistory(topic: string): boolean[] {
   return history[key(topic)] ?? [];
 }
+
+// SPRINT3.md Ticket 3.3b: `history` is keyed purely by topic name, with no
+// student scoping at all -- switching the active student (the student
+// picker/"Switch student") without clearing this would leak the
+// previously-active student's rolling answer history into the newly
+// selected one's session. Called right before re-seeding from the new
+// student's own persisted data.
+export function clearAllHistory(): void {
+  Object.keys(history).forEach((k) => delete history[k]);
+}
