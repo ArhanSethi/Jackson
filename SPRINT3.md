@@ -231,6 +231,48 @@ second profile for a sibling.
 
 ---
 
+### Ticket 3.3b — Student profile creation UI
+Context: Ticket 3.3 built the backend (`POST`/`GET /api/students`, real
+schema, multi-sibling support) but no screen for a parent to actually use
+it. Currently a "Student 1" row gets silently auto-provisioned. This
+ticket adds the real UI: name a first student, add siblings, and pick
+between them if more than one exists. This unblocks
+`SPRINT_VISUAL_CATCHUP.md`'s Ticket P.2 (currently skipped) and the
+sibling-profile portion of Ticket 3.5's verification walkthrough, which
+has had no real interface to test through until now.
+
+**Task:**
+- On first sign-in with no student profiles yet, show a simple "What's
+  your student's name?" screen (replaces silent auto-provisioning),
+  submits via the existing `POST /api/students`.
+- If a parent has one or more existing students, show a lightweight
+  student picker (name + avatar-style initial, using the established
+  color system) before reaching the Dashboard, unless only one profile
+  exists, in which case skip straight to it.
+- Add an "Add sibling" entry point, reachable from the student picker,
+  reuses the same name-entry screen/flow as first-time creation.
+- Reuse existing backend endpoints from Ticket 3.3, no new API surface
+  needed, this is a UI to a pipe that already exists.
+
+**Decide before building:** where "Add sibling" lives, recommend on the
+Dashboard itself (e.g. a small "Switch student" or "+" affordance near
+the greeting) rather than a separate settings screen, keeps it simple for
+this scope.
+
+**Done when:** A parent with zero students sees the name-entry screen,
+creates a profile, reaches the Dashboard. A parent with one existing
+student skips straight to Dashboard. A parent can add a second (sibling)
+profile and switch between the two, verified against real DB rows, not
+just UI state, matching Ticket 3.3's own verification standard.
+
+**Out of scope:** No editing/deleting profiles, no avatar image upload,
+just an initial-letter/color-based avatar per Ticket 3.3's existing color
+system. No per-student settings beyond name.
+
+- [ ] Done. Notes: _______________
+
+---
+
 ### Ticket 3.4 — Migrate session tracking to the database
 Sprint 1's in-memory tracker (last 5 answers, tiers, streaks) currently
 resets on app close. Move this to persist per-student in the database.
