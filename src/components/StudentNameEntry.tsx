@@ -24,6 +24,9 @@ export default function StudentNameEntry({
   error,
 }: StudentNameEntryProps) {
   const [name, setName] = useState('');
+  // SPRINT_VISUAL_CATCHUP.md Ticket P.2: matches EntryScreen's Ticket P.3
+  // focus-state treatment (border darkens on focus) for full parity.
+  const [inputFocused, setInputFocused] = useState(false);
 
   const handleSubmit = () => {
     const trimmed = name.trim();
@@ -43,11 +46,13 @@ export default function StudentNameEntry({
 
       <View style={styles.inputRow}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, inputFocused && styles.inputFocused]}
           placeholder="Student's name"
           value={name}
           onChangeText={setName}
           onSubmitEditing={handleSubmit}
+          onFocus={() => setInputFocused(true)}
+          onBlur={() => setInputFocused(false)}
           editable={!submitting}
           autoCapitalize="words"
         />
@@ -110,6 +115,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontFamily: 'Baloo2_500Medium',
     fontSize: 16,
+  },
+  inputFocused: {
+    borderColor: '#2E7DF0',
   },
   goButton: {
     backgroundColor: '#2E7DF0',

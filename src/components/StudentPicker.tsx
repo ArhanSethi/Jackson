@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Mascot from './Mascot';
-import { getAvatarColor } from '../lib/colors';
+import { getAvatarColor, darken } from '../lib/colors';
 import { StudentProfile } from '../lib/students';
 
 // SPRINT3.md Ticket 3.3b: shown before Dashboard whenever a parent has
@@ -20,7 +20,10 @@ export default function StudentPicker({ students, onSelect, onAddSibling, onCanc
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Mascot color="#8B5CF6" size={64} />
+        {/* Matches the blue used on every other "flow" screen (auth,
+            entry, name-entry) -- Dashboard/close-out's amber is a
+            deliberate distinct "hub" identity, not the default. */}
+        <Mascot color="#2E7DF0" size={64} />
         <Text style={styles.heading}>Who's practicing today?</Text>
       </View>
 
@@ -29,7 +32,12 @@ export default function StudentPicker({ students, onSelect, onAddSibling, onCanc
           const color = getAvatarColor(student.id);
           return (
             <Pressable key={student.id} style={styles.tile} onPress={() => onSelect(student)}>
-              <View style={[styles.avatar, { backgroundColor: color }]}>
+              <View
+                style={[
+                  styles.avatar,
+                  { backgroundColor: color, borderBottomColor: darken(color, 0.3) },
+                ]}
+              >
                 <Text style={styles.avatarText}>{student.name.charAt(0).toUpperCase()}</Text>
               </View>
               <Text style={styles.tileName}>{student.name}</Text>
@@ -87,6 +95,7 @@ const styles = StyleSheet.create({
     width: 84,
     height: 84,
     borderRadius: 42,
+    borderBottomWidth: 5,
     alignItems: 'center',
     justifyContent: 'center',
   },
