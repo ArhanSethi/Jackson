@@ -27,7 +27,7 @@ function progressFor(tiers: Record<string, number>, topic: string): { label: str
   return { label: 'Mastered!', filledDots: 3 };
 }
 
-function ProgressDots({ filled, color }: { filled: number; color: string }) {
+function ProgressDots({ filled }: { filled: number }) {
   return (
     <View style={styles.dotRow}>
       {[0, 1, 2].map((i) => (
@@ -35,8 +35,7 @@ function ProgressDots({ filled, color }: { filled: number; color: string }) {
           key={i}
           style={[
             styles.dot,
-            { borderColor: '#fff' },
-            i < filled ? { backgroundColor: '#fff' } : { backgroundColor: 'transparent' },
+            i < filled ? styles.dotFilled : styles.dotUnfilled,
           ]}
         />
       ))}
@@ -48,8 +47,14 @@ export default function Dashboard({ studentName, tiers, onTopicSelect, onStartSo
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Mascot color="#2E7DF0" size={64} />
-        <Text style={styles.greeting}>Hi, {studentName}!</Text>
+        {/* Design reference: Dashboard's mascot uses a neutral amber, not a
+            topic color -- unlike topic-specific screens where the mascot
+            matches the active topic's color. */}
+        <Mascot color="#FBBF24" size={72} />
+        <View>
+          <Text style={styles.greeting}>Hi, {studentName}!</Text>
+          <Text style={styles.subtitle}>What do you want to work on today?</Text>
+        </View>
       </View>
 
       <View style={styles.grid}>
@@ -66,50 +71,58 @@ export default function Dashboard({ studentName, tiers, onTopicSelect, onStartSo
               onPress={() => onTopicSelect(topic)}
             >
               <Text style={styles.topicCardTitle}>{topic}</Text>
-              <ProgressDots filled={filledDots} color={color} />
+              <ProgressDots filled={filledDots} />
               <Text style={styles.topicCardLabel}>{label}</Text>
             </Pressable>
           );
         })}
-
-        <Pressable style={styles.newCard} onPress={onStartSomethingNew}>
-          <Text style={styles.newCardText}>+ Start something new</Text>
-        </Pressable>
       </View>
+
+      <Pressable style={styles.newCard} onPress={onStartSomethingNew}>
+        <Text style={styles.newCardText}>+ Start something new</Text>
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 16,
-    gap: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
   },
   greeting: {
     fontFamily: 'Baloo2_800ExtraBold',
-    fontSize: 26,
+    fontSize: 30,
     color: '#374151',
+  },
+  subtitle: {
+    fontFamily: 'Baloo2_600SemiBold',
+    fontSize: 16,
+    color: '#9ca3af',
+    marginTop: 2,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 14,
+    marginTop: 22,
   },
   topicCard: {
-    width: 160,
-    padding: 16,
-    borderRadius: 20,
+    width: '31%',
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    borderRadius: 22,
     borderBottomWidth: 4,
     gap: 8,
   },
   topicCardTitle: {
     fontFamily: 'Baloo2_700Bold',
-    fontSize: 18,
+    fontSize: 19,
     color: '#fff',
   },
   dotRow: {
@@ -117,30 +130,36 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 1.5,
+    width: 11,
+    height: 11,
+    borderRadius: 5.5,
+  },
+  dotFilled: {
+    backgroundColor: '#fff',
+  },
+  dotUnfilled: {
+    backgroundColor: 'rgba(255,255,255,0.35)',
   },
   topicCardLabel: {
     fontFamily: 'Baloo2_600SemiBold',
     fontSize: 13,
-    color: '#fff',
+    color: 'rgba(255,255,255,0.9)',
   },
   newCard: {
-    width: 160,
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 2,
+    flex: 1,
+    marginTop: 16,
+    borderRadius: 22,
+    borderWidth: 3,
     borderStyle: 'dashed',
-    borderColor: '#9ca3af',
+    borderColor: '#d1d5db',
+    backgroundColor: '#fffdf7',
     alignItems: 'center',
     justifyContent: 'center',
   },
   newCardText: {
-    fontFamily: 'Baloo2_600SemiBold',
-    fontSize: 15,
-    color: '#6b7280',
+    fontFamily: 'Baloo2_700Bold',
+    fontSize: 19,
+    color: '#374151',
     textAlign: 'center',
   },
 });

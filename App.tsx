@@ -65,6 +65,17 @@ export default function App() {
   // once signed in; this flips true only when "+ Start something new" is
   // tapped, showing the existing EntryScreen underneath it unchanged.
   const [showEntryScreen, setShowEntryScreen] = useState(false);
+  // SPRINT_VISUAL_CATCHUP.md Ticket P.0 bug fix: the session close-out
+  // ("You got X out of Y correct") is its own screen state, separate from
+  // `feedback` (in-question ⭐/💭 feedback only, from here on). Previously
+  // handleEndSession stored the summary in `feedback` with
+  // feedbackCorrect=null, and nothing ever cleared it -- so it kept
+  // rendering underneath Dashboard indefinitely, on every subsequent visit
+  // and even bleeding into the next session's question screen, until the
+  // next answer was graded. Non-null here means "show the close-out
+  // screen instead of Dashboard"; only an explicit "Back to Dashboard" tap
+  // clears it.
+  const [sessionSummary, setSessionSummary] = useState<string | null>(null);
   // True once the known-topic tier load (or a failed attempt at it) has
   // finished. Gates the app past the auth screens so a topic can't be
   // picked before persisted tier data has actually loaded -- without this,
@@ -372,9 +383,10 @@ export default function App() {
   };
 
   const handleEndSession = () => {
-    const summary = `You got ${sessionCorrect} out of ${sessionTotal} correct.`;
+    const summary = `You got ${sessionCorrect} out of ${sessionTotal} correct!`;
     speak(summary);
-    setFeedback(summary);
+    setSessionSummary(summary);
+    setFeedback(null);
     setFeedbackCorrect(null);
     setTopic(null);
     setQuestion(null);
@@ -432,7 +444,26 @@ export default function App() {
           <Text style={styles.signOutButtonText}>Sign out</Text>
         </Pressable>
       </View>
-      {!topic && !showEntryScreen && (
+      {!topic && !showEntryScreen && sessionSummary && (
+        // SPRINT_VISUAL_CATCHUP.md Ticket P.0 bug fix: its own screen,
+        // matching the design reference's separate "Session Close-out"
+        // frame -- mutually exclusive with Dashboard, not layered on top
+        // of it. Only "Back to Dashboard" dismisses it.
+        <View style={styles.closeoutScreen}>
+          {/* Design reference's frame 6 mascot uses the same neutral amber
+              as the Dashboard's, not a topic color. */}
+          <Mascot color="#FBBF24" size={96} />
+          <Text style={styles.closeoutHeadline}>Great job today!</Text>
+          <Text style={styles.closeoutStats}>{sessionSummary}</Text>
+          <Pressable
+            style={styles.closeoutButton}
+            onPress={() => setSessionSummary(null)}
+          >
+            <Text style={styles.closeoutButtonText}>Back to Dashboard</Text>
+          </Pressable>
+        </View>
+      )}
+      {!topic && !showEntryScreen && !sessionSummary && (
         <Dashboard
           studentName={studentName}
           tiers={tiers}
@@ -462,19 +493,7 @@ export default function App() {
           {question.question}
         </Animated.Text>
       )}
-      {feedback && feedbackCorrect === null && (
-        // SPRINT_VISUAL_CATCHUP.md Ticket P.4: the session close-out
-        // (ending a session sets feedback to a summary with no
-        // correct/incorrect emoji) previously fell through to the same
-        // plain feedbackRow as in-question feedback -- a bare sentence
-        // with no card, sitting right below Dashboard's fully-styled
-        // cards. Gives it its own small celebratory card instead.
-        <View style={styles.closeoutCard}>
-          <Mascot color="#22C55E" size={48} />
-          <Text style={styles.closeoutText}>{feedback}</Text>
-        </View>
-      )}
-      {feedback && feedbackCorrect !== null && (
+      {feedback && (
         <Animated.View
           style={[
             styles.feedbackRow,
@@ -570,23 +589,37 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontFamily: 'Baloo2_800ExtraBold',
   },
-  closeoutCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    backgroundColor: '#ECFDF5',
-    borderWidth: 1,
-    borderColor: '#6EE7B7',
-    borderRadius: 20,
-    padding: 14,
-  },
-  closeoutText: {
+  closeoutScreen: {
     flex: 1,
-    fontSize: 18,
-    color: '#065f46',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 18,
+    padding: 32,
+  },
+  closeoutHeadline: {
+    fontFamily: 'Baloo2_800ExtraBold',
+    fontSize: 32,
+    color: '#374151',
+    textAlign: 'center',
+  },
+  closeoutStats: {
     fontFamily: 'Baloo2_700Bold',
+    fontSize: 24,
+    color: '#2E7DF0',
+    textAlign: 'center',
+  },
+  closeoutButton: {
+    backgroundColor: '#2E7DF0',
+    borderBottomWidth: 4,
+    borderBottomColor: '#1e5fc4',
+    borderRadius: 22,
+    paddingVertical: 16,
+    paddingHorizontal: 40,
+  },
+  closeoutButtonText: {
+    color: '#fff',
+    fontFamily: 'Baloo2_700Bold',
+    fontSize: 18,
   },
   feedbackRow: {
     flexDirection: 'row',
