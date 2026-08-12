@@ -33,6 +33,7 @@ import {
   saveKnownTopicTier,
 } from './src/lib/students';
 import AuthScreen from './src/components/AuthScreen';
+import Dashboard from './src/components/Dashboard';
 import EntryScreen from './src/components/EntryScreen';
 
 export default function App() {
@@ -53,6 +54,16 @@ export default function App() {
   // student -- multi-student support itself is proven at the API/DB level
   // (Ticket 3.3's verification), not exercised through this app's UI yet.
   const [studentId, setStudentId] = useState<number | null>(null);
+  // SPRINT_VISUAL_CATCHUP.md Ticket P.0: the Dashboard's greeting uses the
+  // real persisted student name (currently always "Student 1", the
+  // auto-provisioned default from Ticket 3.4 -- there's no profile-
+  // creation UI yet for a parent to set a real name; Ticket P.2 is
+  // skipped for that exact reason).
+  const [studentName, setStudentName] = useState<string>('');
+  // SPRINT_VISUAL_CATCHUP.md Ticket P.0: Dashboard is the landing screen
+  // once signed in; this flips true only when "+ Start something new" is
+  // tapped, showing the existing EntryScreen underneath it unchanged.
+  const [showEntryScreen, setShowEntryScreen] = useState(false);
   // True once the known-topic tier load (or a failed attempt at it) has
   // finished. Gates the app past the auth screens so a topic can't be
   // picked before persisted tier data has actually loaded -- without this,
@@ -154,6 +165,7 @@ export default function App() {
         }
         const primary = students[0];
         setStudentId(primary.id);
+        setStudentName(primary.name);
 
         const {
           tiers: loadedTiers,
@@ -376,6 +388,10 @@ export default function App() {
     // reset every time a session ends (session state only resets on app close).
     setSessionCorrect(0);
     setSessionTotal(0);
+    // SPRINT_VISUAL_CATCHUP.md Ticket P.0: ending a session returns to the
+    // Dashboard (matching the design reference's close-out -> Dashboard
+    // connector), not back to the entry screen it may have come from.
+    setShowEntryScreen(false);
   };
 
   if (!fontsLoaded || !authLoaded) {
@@ -415,7 +431,15 @@ export default function App() {
           <Text style={styles.signOutButtonText}>Sign out</Text>
         </Pressable>
       </View>
-      {!topic && <EntryScreen onTopicChosen={handleTopicSelect} />}
+      {!topic && !showEntryScreen && (
+        <Dashboard
+          studentName={studentName}
+          tiers={tiers}
+          onTopicSelect={handleTopicSelect}
+          onStartSomethingNew={() => setShowEntryScreen(true)}
+        />
+      )}
+      {!topic && showEntryScreen && <EntryScreen onTopicChosen={handleTopicSelect} />}
       {placement && (
         <Text style={styles.status}>
           Quick check ({placement.answers.length + 1} of 2) to find your starting level
