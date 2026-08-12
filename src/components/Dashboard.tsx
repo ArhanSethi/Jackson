@@ -14,6 +14,11 @@ interface DashboardProps {
   tiers: Record<string, number>;
   onTopicSelect: (topic: string) => void;
   onStartSomethingNew: () => void;
+  // SPRINT3.md Ticket 3.3b: opens the student picker (also where "Add
+  // sibling" lives) -- per the ticket's own "decide before building"
+  // recommendation, a small affordance near the greeting rather than a
+  // separate settings screen.
+  onSwitchStudent: () => void;
 }
 
 // Ticket P.0's own "decide before building" recommendation, followed as
@@ -43,7 +48,13 @@ function ProgressDots({ filled }: { filled: number }) {
   );
 }
 
-export default function Dashboard({ studentName, tiers, onTopicSelect, onStartSomethingNew }: DashboardProps) {
+export default function Dashboard({
+  studentName,
+  tiers,
+  onTopicSelect,
+  onStartSomethingNew,
+  onSwitchStudent,
+}: DashboardProps) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -51,10 +62,13 @@ export default function Dashboard({ studentName, tiers, onTopicSelect, onStartSo
             topic color -- unlike topic-specific screens where the mascot
             matches the active topic's color. */}
         <Mascot color="#FBBF24" size={72} />
-        <View>
+        <View style={styles.headerText}>
           <Text style={styles.greeting}>Hi, {studentName}!</Text>
           <Text style={styles.subtitle}>What do you want to work on today?</Text>
         </View>
+        <Pressable style={styles.switchStudentButton} onPress={onSwitchStudent}>
+          <Text style={styles.switchStudentButtonText}>Switch student</Text>
+        </Pressable>
       </View>
 
       <View style={styles.grid}>
@@ -95,6 +109,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
+  headerText: {
+    flex: 1,
+  },
   greeting: {
     fontFamily: 'Baloo2_800ExtraBold',
     fontSize: 30,
@@ -105,6 +122,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#9ca3af',
     marginTop: 2,
+  },
+  switchStudentButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    backgroundColor: '#f3f4f6',
+  },
+  switchStudentButtonText: {
+    fontFamily: 'Baloo2_600SemiBold',
+    fontSize: 13,
+    color: '#374151',
   },
   grid: {
     flexDirection: 'row',

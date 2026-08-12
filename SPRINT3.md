@@ -269,7 +269,55 @@ just UI state, matching Ticket 3.3's own verification standard.
 just an initial-letter/color-based avatar per Ticket 3.3's existing color
 system. No per-student settings beyond name.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: Built `StudentNameEntry.tsx` (mandatory first-profile
+  screen, and "Add sibling" via the same component/flow with an
+  `isFirstProfile` copy switch) and `StudentPicker.tsx` (avatar-initial
+  tiles using a new `getAvatarColor()` in `colors.ts`, cycling through the
+  existing `TOPIC_COLORS` values by student id rather than inventing a new
+  palette). Both call the existing `POST`/`GET /api/students` from Ticket
+  3.3 -- no new backend surface. Split the old single "list-or-auto-
+  provision-then-load-tiers" effect into two: one loads the roster and
+  decides zero/one/two-plus routing, the second (re-keyed off the *active*
+  `studentId` instead of `isSignedIn`) loads that student's tiers --
+  needed so switching students re-triggers a real reload rather than
+  reusing stale data. "Add sibling" lives on the Dashboard itself (a small
+  "Switch student" button next to the greeting, opening the picker, which
+  is also where "Add sibling" lives) per the ticket's own recommendation.
+  Found and fixed a real cross-student data-leak risk while building this:
+  `performanceTracker.ts`'s rolling-history object is keyed purely by
+  topic name with no student scoping at all, so switching the active
+  student without clearing it would leak the outgoing student's answer
+  history into the incoming one's tier/streak math. Added
+  `clearAllHistory()`, called before every student switch (both "Add
+  sibling" and picker selection), immediately followed by the tier-load
+  effect re-seeding it correctly from the new student's own persisted
+  data.
+  **Verified against real DB rows, matching Ticket 3.3's own standard**
+  (same temporary, matching client+server auth bypass pattern as Ticket
+  3.4's verification -- Clerk's domains are still network-blocked in this
+  sandbox, Ticket 3.2's root cause -- reverted via `git checkout`
+  immediately after, confirmed clean diff):
+  1. Zero students: real name-entry screen shown, submitted "Alice",
+     landed on Dashboard greeting "Alice" -- confirmed a real `students`
+     row was inserted (`SELECT` against the actual table, not trusting
+     the app's own success state).
+  2. Reloaded with exactly one student: skipped straight to Dashboard, no
+     name-entry or picker shown.
+  3. Tapped "Switch student" -> picker showed Alice's tile + "Add
+     sibling" -> "Add sibling" -> reused name-entry screen (different
+     copy: "Add a sibling") -> submitted "Bob" -> landed on Dashboard
+     greeting "Bob". Confirmed a second real `students` row existed,
+     correctly linked to the same parent.
+  4. Reloaded with two students: picker showed automatically this time
+     (not skipped), both Alice and Bob as tiles.
+  5. Cross-student isolation: seeded a real `known_topic_tiers` row for
+     Alice only (`tier=3`, Addition). Selected Alice -> Dashboard
+     correctly showed "Mastered!" for Addition. Switched to Bob -> showed
+     "New" for Addition (no leak). Switched back to Alice -> "Mastered!"
+     again (correctly reloaded, not stuck on Bob's empty state). This is
+     the scenario the `clearAllHistory()` fix above exists for.
+  Cleaned up all test data (the temp parent row, cascading to both
+  students and the seeded tier row) after verification.
 
 ---
 

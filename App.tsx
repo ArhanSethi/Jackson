@@ -22,6 +22,7 @@ import {
   resetTopicHistory,
   seedHistory,
   getHistory,
+  clearAllHistory,
 } from './src/lib/performanceTracker';
 import { getTopicColor, lighten } from './src/lib/colors';
 import { isKnownTopic } from './src/lib/topics';
@@ -31,11 +32,14 @@ import {
   createStudent,
   getKnownTopicTiers,
   saveKnownTopicTier,
+  StudentProfile,
 } from './src/lib/students';
 import AuthScreen from './src/components/AuthScreen';
 import Dashboard from './src/components/Dashboard';
 import Mascot from './src/components/Mascot';
 import EntryScreen from './src/components/EntryScreen';
+import StudentNameEntry from './src/components/StudentNameEntry';
+import StudentPicker from './src/components/StudentPicker';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -49,18 +53,21 @@ export default function App() {
   const { user } = useUser();
 
   const [backendUserId, setBackendUserId] = useState<string | null>(null);
-  // SPRINT3.md Ticket 3.4: which student's tier data is loaded. No
-  // student-picker UI yet (out of scope for this ticket), so a single
-  // default profile is auto-provisioned per parent and used as "the"
-  // student -- multi-student support itself is proven at the API/DB level
-  // (Ticket 3.3's verification), not exercised through this app's UI yet.
+  // SPRINT3.md Ticket 3.3b: the active student's id/name, plus the full
+  // roster and which "student flow" screen (if any) is currently showing.
+  // `studentsLoaded` gates the app the same way `tiersLoaded` already
+  // does, so a topic can't be picked (or the wrong screen briefly flash)
+  // before the roster is actually known.
   const [studentId, setStudentId] = useState<number | null>(null);
-  // SPRINT_VISUAL_CATCHUP.md Ticket P.0: the Dashboard's greeting uses the
-  // real persisted student name (currently always "Student 1", the
-  // auto-provisioned default from Ticket 3.4 -- there's no profile-
-  // creation UI yet for a parent to set a real name; Ticket P.2 is
-  // skipped for that exact reason).
   const [studentName, setStudentName] = useState<string>('');
+  const [students, setStudents] = useState<StudentProfile[]>([]);
+  const [studentsLoaded, setStudentsLoaded] = useState(false);
+  // null = proceed to the normal app; 'name-entry' = mandatory first
+  // profile OR "Add sibling"; 'picker' = choose among 2+ existing
+  // students, or reachable any time via Dashboard's "Switch student".
+  const [studentFlowScreen, setStudentFlowScreen] = useState<'name-entry' | 'picker' | null>(null);
+  const [creatingStudent, setCreatingStudent] = useState(false);
+  const [createStudentError, setCreateStudentError] = useState<string | null>(null);
   // SPRINT_VISUAL_CATCHUP.md Ticket P.0: Dashboard is the landing screen
   // once signed in; this flips true only when "+ Start something new" is
   // tapped, showing the existing EntryScreen underneath it unchanged.
@@ -154,15 +161,51 @@ export default function App() {
     })();
   }, [isSignedIn]);
 
-  // SPRINT3.md Ticket 3.4: loads this student's persisted known-topic tier
-  // state (or auto-provisions a first student profile if none exists yet)
-  // so tier/struggling/streak state picks up exactly where it left off
-  // after a reload, instead of starting over. Dynamic topics are never
-  // touched here -- `dynamicTiers` stays purely in-memory, preserving
-  // Sprint4 Ticket D's "never persisted" guarantee for them.
+  // SPRINT3.md Ticket 3.3b: loads the parent's student roster and decides
+  // which "student flow" screen (if any) to show before Dashboard --
+  // mandatory name-entry for zero students, auto-select and straight to
+  // Dashboard for exactly one, picker for two or more. Replaces the old
+  // silent "Student 1" auto-provisioning.
   useEffect(() => {
     if (!isSignedIn) {
+      setStudents([]);
+      setStudentsLoaded(false);
       setStudentId(null);
+      setStudentName('');
+      setStudentFlowScreen(null);
+      return;
+    }
+    (async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const { students: loaded } = await listStudents(token);
+        setStudents(loaded);
+        if (loaded.length === 0) {
+          setStudentFlowScreen('name-entry');
+        } else if (loaded.length === 1) {
+          setStudentId(loaded[0].id);
+          setStudentName(loaded[0].name);
+          setStudentFlowScreen(null);
+        } else {
+          setStudentFlowScreen('picker');
+        }
+      } catch (err) {
+        console.error('[students] failed to load roster', err);
+      } finally {
+        setStudentsLoaded(true);
+      }
+    })();
+  }, [isSignedIn]);
+
+  // SPRINT3.md Ticket 3.4 (re-keyed off studentId by Ticket 3.3b): loads
+  // the *active* student's persisted known-topic tier state, so tier/
+  // struggling/streak state picks up exactly where it left off -- both
+  // after a reload and after switching to a different student profile.
+  // Dynamic topics are never touched here -- `dynamicTiers` stays purely
+  // in-memory, preserving Sprint4 Ticket D's "never persisted" guarantee.
+  useEffect(() => {
+    if (!studentId) {
       setTiersLoaded(false);
       return;
     }
@@ -170,33 +213,70 @@ export default function App() {
       try {
         const token = await getToken();
         if (!token) return;
-        let { students } = await listStudents(token);
-        if (students.length === 0) {
-          const created = await createStudent(token, 'Student 1');
-          students = [created.student];
-        }
-        const primary = students[0];
-        setStudentId(primary.id);
-        setStudentName(primary.name);
-
         const {
           tiers: loadedTiers,
           struggling: loadedStruggling,
           recentResults,
-        } = await getKnownTopicTiers(token, primary.id);
+        } = await getKnownTopicTiers(token, studentId);
         setTiers(loadedTiers);
         setStruggling(loadedStruggling);
         Object.entries(recentResults).forEach(([t, results]) => {
           seedHistory(t, results);
         });
-        console.log('[tiers] loaded persisted state for student', primary.id, loadedTiers);
+        console.log('[tiers] loaded persisted state for student', studentId, loadedTiers);
       } catch (err) {
         console.error('[tiers] failed to load persisted state', err);
       } finally {
         setTiersLoaded(true);
       }
     })();
-  }, [isSignedIn]);
+  }, [studentId]);
+
+  // SPRINT3.md Ticket 3.3b: creates a profile via the existing
+  // POST /api/students (first profile or "Add sibling" -- same call
+  // either way), makes it the active student, and returns to the normal
+  // app. Switching to a different student's data mid-session means
+  // clearing performanceTracker's module-level (student-unaware) history
+  // first, so the outgoing student's rolling answer window can't leak
+  // into the incoming one's -- the tier-loading effect above then re-seeds
+  // it correctly from the new student's own persisted data.
+  const handleCreateStudent = async (name: string) => {
+    setCreatingStudent(true);
+    setCreateStudentError(null);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const { student } = await createStudent(token, name);
+      setStudents((prev) => [...prev, student]);
+      clearAllHistory();
+      setTiers({});
+      setStruggling({});
+      setDynamicTiers({});
+      setSessionCorrect(0);
+      setSessionTotal(0);
+      setStudentId(student.id);
+      setStudentName(student.name);
+      setStudentFlowScreen(null);
+    } catch (err) {
+      setCreateStudentError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setCreatingStudent(false);
+    }
+  };
+
+  const handleSelectStudent = (student: StudentProfile) => {
+    if (student.id !== studentId) {
+      clearAllHistory();
+      setTiers({});
+      setStruggling({});
+      setDynamicTiers({});
+      setSessionCorrect(0);
+      setSessionTotal(0);
+    }
+    setStudentId(student.id);
+    setStudentName(student.name);
+    setStudentFlowScreen(null);
+  };
 
   // SPRINT3.md Ticket 3.4: persists a known topic's tier/struggling/streak
   // state after it changes. No-op for dynamic topics or before a student
@@ -415,6 +495,41 @@ export default function App() {
     return <AuthScreen />;
   }
 
+  // SPRINT3.md Ticket 3.3b: wait for the student roster before deciding
+  // which screen (if any) to show -- otherwise the app would briefly
+  // flash toward the normal Dashboard/tiersLoaded path before the roster
+  // resolves to "zero students" or "two-plus students".
+  if (!studentsLoaded) {
+    return <View style={styles.container} />;
+  }
+
+  if (studentFlowScreen === 'name-entry') {
+    return (
+      <View style={styles.container}>
+        <StudentNameEntry
+          isFirstProfile={students.length === 0}
+          onSubmit={handleCreateStudent}
+          onCancel={students.length > 0 ? () => setStudentFlowScreen('picker') : undefined}
+          submitting={creatingStudent}
+          error={createStudentError}
+        />
+      </View>
+    );
+  }
+
+  if (studentFlowScreen === 'picker') {
+    return (
+      <View style={styles.container}>
+        <StudentPicker
+          students={students}
+          onSelect={handleSelectStudent}
+          onAddSibling={() => setStudentFlowScreen('name-entry')}
+          onCancel={studentId ? () => setStudentFlowScreen(null) : undefined}
+        />
+      </View>
+    );
+  }
+
   // SPRINT3.md Ticket 3.4: wait for persisted tier state to actually load
   // before letting a topic be picked -- otherwise `tiers` would still read
   // as empty and incorrectly re-trigger placement for a topic this student
@@ -469,6 +584,7 @@ export default function App() {
           tiers={tiers}
           onTopicSelect={handleTopicSelect}
           onStartSomethingNew={() => setShowEntryScreen(true)}
+          onSwitchStudent={() => setStudentFlowScreen('picker')}
         />
       )}
       {!topic && showEntryScreen && <EntryScreen onTopicChosen={handleTopicSelect} />}
