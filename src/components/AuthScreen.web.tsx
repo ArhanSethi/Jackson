@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SignIn, SignUp } from '@clerk/clerk-expo/web';
+import Mascot from './Mascot';
 
 // SPRINT3.md Ticket 3.2 (decided 2026-08-05): Clerk's prebuilt <SignIn />/
 // <SignUp /> components — they read whichever strategies (email/password,
@@ -92,6 +93,7 @@ export default function AuthScreen() {
 
   return (
     <View style={styles.container}>
+      <Mascot color="#2E7DF0" size={72} />
       <Text style={styles.title}>Jackson</Text>
       <View style={styles.formWrapper}>
         {mode === 'sign-in' ? (
