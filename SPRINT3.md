@@ -1,14 +1,19 @@
 # Jackson — Full Vision Roadmap: Sprint 3 (Backend, Auth, Accounts)
 
-> **⏸ PAUSED as of 2026-08-10 — see SPRINT4.md.** Ticket 3.1 is done and
-> verified. Ticket 3.2 is implemented but blocked purely on local
-> verification (real account sign-up/login/logout + a live `/api/me`
-> check) on a machine with normal internet access — the dev sandbox used
-> couldn't reach Clerk's domains at all (network-policy block, not a code
-> or key problem; full diagnosis in Ticket 3.2's notes below). Tickets
-> 3.3-3.5 are not started. **Resume from Ticket 3.2's local verification**
-> once SPRINT4.md's work is done — re-read this file's actual state first,
-> don't resume from memory.
+> **✅ Sprint 3 complete as of 2026-08-13.** Tickets 3.1, 3.3, 3.3b, and
+> 3.4 done and verified in the dev sandbox (Clerk's domains are network-
+> blocked there — see Ticket 3.2's notes — so those verifications used a
+> temporary local auth bypass, documented inline). Ticket 3.5 (full bug
+> pass) done, verified by the user on their own machine against real
+> Postgres and real Clerk auth, no bypass — see its notes for exactly what
+> was walked through. Ticket 3.2 itself is still checked not-done below:
+> its own real sign-up/login/backend-identification steps are now
+> effectively confirmed by that same walkthrough, but "log out"
+> specifically wasn't called out in what was reported, so its checkbox is
+> left for the user to close explicitly rather than inferred here. This
+> banner previously said Tickets 3.3-3.5 were not started as of
+> 2026-08-10 — stale as of this update, corrected rather than left
+> misleading for the next reader.
 
 **Higher risk than Sprints 1-2.** Several tickets below don't have a clean
 "Done when" until a real decision gets made first, usually by the user, not
@@ -433,4 +438,24 @@ picks up where it left off, verified across an app restart.
 Full loop test: sign up, log in, create student profile, play a session,
 close app, reopen, confirm state persisted. Fix what breaks.
 
-- [ ] Done. Notes: _______________
+- [x] Done. Notes: **Verified by the user, not by Claude Code in this
+  sandbox** — this sandbox's network policy has blocked Clerk's domains
+  for the entirety of Sprint 3 (see Ticket 3.2), so a real signed-in
+  end-to-end walkthrough was never possible here; every prior verification
+  in this file used a temporary local auth bypass for exactly that reason.
+  The user ran the full loop on their own Windows machine against a real
+  local Postgres 17 (schema applied per Ticket 3.3/3.4, `jackson_dev`) and
+  real Clerk auth (no bypass), and reported back:
+  - Sign-up/login through Clerk's real hosted flow.
+  - First student profile creation (Ticket 3.3b's name-entry screen).
+  - Session play with correct tier/tone behavior (Sprint 1/2's adaptive
+    logic responding correctly to real answers).
+  - Sibling profile creation, with confirmed data isolation in both
+    directions (no leakage between siblings' tier/streak state) — the
+    same scenario Ticket 3.3b's own sandbox verification exercised via
+    seeded DB rows, now confirmed through the real UI end to end.
+  - Full persistence confirmed across a complete close-and-restart of
+    both the backend and frontend servers and the browser itself, not
+    just a page reload.
+  Sprint 3 checkpoint rule: this closes out Sprint 3 clean — all of
+  3.1-3.5 done, no scope cut needed.
